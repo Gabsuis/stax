@@ -21,20 +21,17 @@ export function getLeaseColor(leaseEnd: Date | null): string {
   return map[urgency]
 }
 
-export function getLeaseLabel(leaseEnd: Date | null): string {
-  if (!leaseEnd) return "ללא תאריך"
+/** Returns a lease label key + params for use with translations.
+ *  Components should use t(key, params) from the "lease" namespace. */
+export function getLeaseLabelParts(leaseEnd: Date | null): { key: string; params?: Record<string, number> } {
+  if (!leaseEnd) return { key: "noDate" }
   const months = differenceInMonths(leaseEnd, new Date())
-  if (months < 0) return "פג תוקף"
-  if (months === 0) return "החודש"
-  if (months < 12) return `${months} חודשים`
+  if (months < 0) return { key: "expired" }
+  if (months === 0) return { key: "thisMonth" }
+  if (months < 12) return { key: "months", params: { count: months } }
   const years = Math.floor(months / 12)
   const rem = months % 12
-  return rem > 0 ? `${years}ש׳ ${rem}ח׳` : `${years} שנים`
+  return rem > 0
+    ? { key: "yearsMonths", params: { years, months: rem } }
+    : { key: "years", params: { years } }
 }
-
-export const LEASE_LEGEND = [
-  { color: "#10b981", label: "מעל 24 חודש" },
-  { color: "#f59e0b", label: "6–24 חודש" },
-  { color: "#f43f5e", label: "פחות מ-6 חודש" },
-  { color: "transparent", border: "1px dashed rgba(255,255,255,0.3)", label: "פנוי" },
-] as const

@@ -1,6 +1,6 @@
 "use client"
 
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
 import { Building } from "@/types"
 import { formatSqm, formatPrice } from "@/lib/utils"
 
@@ -10,6 +10,7 @@ interface Props {
 
 export default function DashboardStats({ buildings }: Props) {
   const t = useTranslations("dashboard")
+  const locale = useLocale()
   const totalSqm = buildings.reduce((s, b) => s + b.totalSqm, 0)
   const totalVacant = buildings.reduce((s, b) => s + b.vacantSqm, 0)
   const avgOcc = buildings.length
@@ -31,10 +32,10 @@ export default function DashboardStats({ buildings }: Props) {
 
   const stats = [
     { label: t("totalBuildings"), value: `${totalBuildings}`, accent: false },
-    { label: t("totalSqm"), value: formatSqm(totalSqm), accent: false },
-    { label: t("vacantSqm"), value: formatSqm(totalVacant), accent: true, color: "text-lease-red" },
+    { label: t("totalSqm"), value: formatSqm(totalSqm, locale), accent: false },
+    { label: t("vacantSqm"), value: formatSqm(totalVacant, locale), accent: true, color: "text-lease-red" },
     { label: t("avgOccupancy"), value: `${avgOcc}%`, accent: avgOcc < 85, color: "text-lease-amber" },
-    { label: t("avgPrice"), value: formatPrice(avgPrice), accent: false },
+    { label: t("avgPrice"), value: formatPrice(avgPrice, locale), accent: false },
     { label: t("atRiskLeases"), value: `${urgentLeases}`, accent: urgentLeases > 0, color: "text-lease-red" },
   ]
 

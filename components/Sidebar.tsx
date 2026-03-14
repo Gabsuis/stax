@@ -1,6 +1,6 @@
 "use client"
 
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
 import { Link, usePathname } from "@/i18n/navigation"
 import { Building } from "@/types"
 import { formatSqm } from "@/lib/utils"
@@ -13,6 +13,7 @@ interface Props {
 
 export default function Sidebar({ buildings }: Props) {
   const t = useTranslations()
+  const locale = useLocale()
   const pathname = usePathname()
   const totalVacant = buildings.reduce((sum, b) => sum + b.vacantSqm, 0)
   const avgOcc = buildings.length
@@ -68,7 +69,7 @@ export default function Sidebar({ buildings }: Props) {
         <div className="rounded-xl glass p-4">
           <div className="text-[10px] text-muted-foreground uppercase tracking-widest mb-2">{t("dashboard.totalVacant")}</div>
           <div className="text-xl font-semibold data-value text-lease-red">
-            {formatSqm(totalVacant)}
+            {formatSqm(totalVacant, locale)}
           </div>
         </div>
         <div className="rounded-xl glass p-4">

@@ -1,6 +1,6 @@
 "use client"
 
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
 import { Building } from "@/types"
 import { formatSqm, formatPrice } from "@/lib/utils"
 import MiniStack from "./MiniStack"
@@ -13,6 +13,7 @@ interface Props {
 
 export default function BuildingCard({ building, onSelect }: Props) {
   const t = useTranslations("card")
+  const locale = useLocale()
   const occ = Math.round(building.occupancy * 100)
 
   return (
@@ -31,8 +32,12 @@ export default function BuildingCard({ building, onSelect }: Props) {
               <span className="text-[10px] text-muted-foreground/40">{building.area}</span>
             )}
           </div>
-          <h3 className="text-base font-semibold truncate tracking-tight">{building.name}</h3>
-          <p className="text-xs text-muted-foreground/50 truncate mt-0.5">{building.nameEn}</p>
+          <h3 className="text-base font-semibold truncate tracking-tight">
+            {locale === "he" ? building.name : building.nameEn}
+          </h3>
+          <p className="text-xs text-muted-foreground/50 truncate mt-0.5">
+            {locale === "he" ? building.nameEn : building.name}
+          </p>
         </div>
         <MiniStack floors={building.floors} />
       </div>
@@ -40,15 +45,15 @@ export default function BuildingCard({ building, onSelect }: Props) {
       {/* Key metrics — clean, minimal */}
       <div className="grid grid-cols-3 gap-4 mb-5">
         <div>
-          <div className="text-sm font-semibold data-value">{formatSqm(building.totalSqm)}</div>
+          <div className="text-sm font-semibold data-value">{formatSqm(building.totalSqm, locale)}</div>
           <div className="text-[10px] text-muted-foreground/50 mt-0.5">{t("totalSqm")}</div>
         </div>
         <div>
-          <div className="text-sm font-semibold data-value text-lease-red">{formatSqm(building.vacantSqm)}</div>
+          <div className="text-sm font-semibold data-value text-lease-red">{formatSqm(building.vacantSqm, locale)}</div>
           <div className="text-[10px] text-muted-foreground/50 mt-0.5">{t("vacantSqm")}</div>
         </div>
         <div>
-          <div className="text-sm font-semibold data-value">{formatPrice(building.askingPrice)}</div>
+          <div className="text-sm font-semibold data-value">{formatPrice(building.askingPrice, locale)}</div>
           <div className="text-[10px] text-muted-foreground/50 mt-0.5">{t("pricePerSqm")}</div>
         </div>
       </div>

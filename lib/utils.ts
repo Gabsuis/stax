@@ -6,16 +6,19 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function formatSqm(n: number): string {
+export function formatSqm(n: number, locale: string = "he"): string {
   if (!n || n === 0) return "—"
+  const unit = locale === "he" ? "מ״ר" : "sqm"
+  const numLocale = locale === "he" ? "he-IL" : "en-US"
   return n >= 10000
-    ? `${(n / 1000).toFixed(0)}K מ״ר`
-    : `${n.toLocaleString("he-IL")} מ״ר`
+    ? `${(n / 1000).toFixed(0)}K ${unit}`
+    : `${n.toLocaleString(numLocale)} ${unit}`
 }
 
-export function formatPrice(n: number): string {
+export function formatPrice(n: number, locale: string = "he"): string {
   if (!n || n === 0) return "—"
-  return `₪${n.toLocaleString("he-IL")}`
+  const numLocale = locale === "he" ? "he-IL" : "en-US"
+  return `₪${n.toLocaleString(numLocale)}`
 }
 
 export function getOccupancyColor(occ: number): string {
@@ -28,7 +31,8 @@ export function calcVacantFloors(floors: Floor[]): number {
   return floors.filter(f => f.blocks.every(b => b.status === "vacant")).length
 }
 
-export function formatDate(d: Date | null): string {
+export function formatDate(d: Date | null, locale: string = "he"): string {
   if (!d) return "—"
-  return d.toLocaleDateString("he-IL", { month: "2-digit", year: "numeric" })
+  const dateLocale = locale === "he" ? "he-IL" : "en-US"
+  return d.toLocaleDateString(dateLocale, { month: "2-digit", year: "numeric" })
 }

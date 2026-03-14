@@ -1,9 +1,9 @@
 {
   "common": {
     "stax": "STAX",
-    "tagline": "Real Estate Intelligence",
+    "tagline": "מודיעין נדל״ן",
     "version": "v1.0",
-    "demo": "Demo · הרצליה פיתוח 2026"
+    "demo": "דמו · הרצליה פיתוח 2026"
   },
   "nav": {
     "home": "ראשי",
@@ -12,7 +12,7 @@
   },
   "landing": {
     "badge": "פלטפורמה חדשה לנדל״ן מסחרי",
-    "title1": "Stacking Plans",
+    "title1": "תוכניות ערימה",
     "title2": "ברמה אחרת.",
     "subtitle": "דשבורד חכם לניהול תיק נכסים מסחרי. תפוסה, חוזים, שטחים פנויים — הכל בתצוגה אחת ברורה ומעוצבת.",
     "ctaDashboard": "כנס לדשבורד",
@@ -25,14 +25,16 @@
     "twoToolsSub": "הכל מה שמתווך נדל״ן מסחרי צריך.",
     "dashboardTitle": "דשבורד נכסים",
     "dashboardDesc": "תצוגה מלאה של תיק הנכסים",
-    "dashboardF1": "Stacking plans אינטראקטיביים עם צבעי חוזה",
-    "dashboardF2": "KPIs — תפוסה, שטח פנוי, מחירים",
+    "dashboardF1": "תוכניות ערימה אינטראקטיביות עם צבעי חוזה",
+    "dashboardF2": "מדדים — תפוסה, שטח פנוי, מחירים",
     "dashboardF3": "17 מגדלים עם נתוני שוכרים אמיתיים",
-    "editorTitle": "עורך Stacking Plan",
-    "editorDesc": "צור stacking plan חדש מאפס",
+    "editorTitle": "עורך תוכנית ערימה",
+    "editorDesc": "צור תוכנית ערימה חדשה מאפס",
     "editorF1": "הוספת קומות ויחידות בלחיצה",
     "editorF2": "עריכת שוכרים, שטחים ותאריכי חוזה",
-    "editorF3": "תצוגה חיה עם צבעי lease urgency"
+    "editorF3": "תצוגה חיה עם צבעי דחיפות חוזה",
+    "heroBuilding": "מגדל אמפא",
+    "heroAddress": "ספיר 7, הרצליה פיתוח"
   },
   "dashboard": {
     "title": "תיק נכסים",
@@ -59,7 +61,7 @@
     "pricePerSqm": "מחיר למ״ר",
     "typicalFloor": "קומה טיפוסית",
     "vacantFloors": "קומות פנויות",
-    "allowance": "Allowance",
+    "allowance": "הטבות",
     "occupancy": "תפוסה"
   },
   "modal": {
@@ -85,14 +87,14 @@
     "area": "שטח",
     "tenant": "שוכר",
     "askingPrice": "מחיר מבוקש",
-    "allowance": "Allowance",
+    "allowance": "הטבות",
     "finishLevel": "רמת גמר",
     "leaseEnd": "סיום חוזה",
     "notes": "הערות"
   },
   "editor": {
-    "title": "עורך Stacking Plan",
-    "subtitle": "צור ועצב stacking plan חדש",
+    "title": "עורך תוכנית ערימה",
+    "subtitle": "צור ועצב תוכנית ערימה חדשה",
     "buildingName": "שם הבניין",
     "floorSize": "גודל קומה (מ״ר)",
     "addFloor": "הוסף קומה",

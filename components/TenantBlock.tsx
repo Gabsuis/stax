@@ -1,8 +1,8 @@
 "use client"
 
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
 import { TenantBlock as TenantBlockType } from "@/types"
-import { getLeaseColor, getLeaseLabel } from "@/lib/leaseColors"
+import { getLeaseColor, getLeaseLabelParts } from "@/lib/leaseColors"
 import { formatSqm } from "@/lib/utils"
 import {
   Tooltip,
@@ -19,10 +19,14 @@ interface Props {
 
 export default function TenantBlock({ block, floorTotalSqm, isSelected, onSelect }: Props) {
   const t = useTranslations("legend")
+  const tLease = useTranslations("lease")
+  const locale = useLocale()
   const pct = (block.sqm / floorTotalSqm) * 100
   const showLabel = pct > 12
   const isVacant = block.status === "vacant"
   const color = getLeaseColor(block.leaseEnd)
+  const leaseParts = getLeaseLabelParts(block.leaseEnd)
+  const leaseLabel = tLease(leaseParts.key, leaseParts.params)
 
   return (
     <Tooltip>
@@ -71,7 +75,7 @@ export default function TenantBlock({ block, floorTotalSqm, isSelected, onSelect
                   color: "rgba(255,255,255,0.3)",
                 }}
               >
-                {formatSqm(block.sqm)}
+                {formatSqm(block.sqm, locale)}
               </span>
             )}
           </div>
@@ -79,7 +83,7 @@ export default function TenantBlock({ block, floorTotalSqm, isSelected, onSelect
       </TooltipTrigger>
       <TooltipContent side="top" className="glass-strong text-sm rounded-lg">
         <p className="font-medium">{block.tenantName || t("vacant")}</p>
-        <p className="text-muted-foreground text-xs">{formatSqm(block.sqm)} · {getLeaseLabel(block.leaseEnd)}</p>
+        <p className="text-muted-foreground text-xs">{formatSqm(block.sqm, locale)} · {leaseLabel}</p>
       </TooltipContent>
     </Tooltip>
   )

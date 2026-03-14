@@ -1,11 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
 import Sidebar from "@/components/Sidebar"
 import { buildings as mockBuildings } from "@/data/buildings"
 import { Floor, TenantBlock } from "@/types"
-import { getLeaseColor, getLeaseLabel } from "@/lib/leaseColors"
+import { getLeaseColor, getLeaseLabelParts } from "@/lib/leaseColors"
 import { formatSqm } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { Plus, Trash2 } from "lucide-react"
@@ -17,6 +17,8 @@ function generateId() {
 export default function EditorPage() {
   const t = useTranslations("editor")
   const tLegend = useTranslations("legend")
+  const tLease = useTranslations("lease")
+  const locale = useLocale()
 
   const [buildingName, setBuildingName] = useState(t("newBuilding"))
   const [floorSize, setFloorSize] = useState(1200)
@@ -284,7 +286,7 @@ export default function EditorPage() {
                               </TooltipTrigger>
                               <TooltipContent side="top" className="glass-strong text-sm rounded-lg">
                                 <p className="font-medium">{block.tenantName || tLegend("vacant")}</p>
-                                <p className="text-muted-foreground text-xs">{formatSqm(block.sqm)} · {getLeaseLabel(block.leaseEnd)}</p>
+                                <p className="text-muted-foreground text-xs">{formatSqm(block.sqm, locale)} · {tLease(getLeaseLabelParts(block.leaseEnd).key, getLeaseLabelParts(block.leaseEnd).params)}</p>
                               </TooltipContent>
                             </Tooltip>
                           )

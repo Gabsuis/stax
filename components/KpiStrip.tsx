@@ -1,6 +1,6 @@
 "use client"
 
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
 import { Building } from "@/types"
 import { formatSqm, formatPrice, calcVacantFloors } from "@/lib/utils"
 
@@ -10,17 +10,18 @@ interface Props {
 
 export default function KpiStrip({ building }: Props) {
   const t = useTranslations("modal")
+  const locale = useLocale()
   const vacantFloors = calcVacantFloors(building.floors)
   const occ = Math.round(building.occupancy * 100)
 
   const cells = [
-    { label: t("totalSqm"), value: formatSqm(building.totalSqm), color: "" },
-    { label: t("vacantSqm"), value: formatSqm(building.vacantSqm), color: "text-lease-red" },
+    { label: t("totalSqm"), value: formatSqm(building.totalSqm, locale), color: "" },
+    { label: t("vacantSqm"), value: formatSqm(building.vacantSqm, locale), color: "text-lease-red" },
     { label: t("occupancy"), value: `${occ}%`, color: occ >= 85 ? "text-lease-green" : occ >= 65 ? "" : "text-lease-red" },
     { label: t("floors"), value: `${building.floorCount}`, color: "" },
     { label: t("vacantFloors"), value: `${vacantFloors}`, color: vacantFloors > 0 ? "text-lease-red" : "" },
-    { label: t("pricePerSqm"), value: formatPrice(building.askingPrice), color: "" },
-    { label: t("managementFee"), value: building.managementFee ? formatPrice(building.managementFee) : "—", color: "" },
+    { label: t("pricePerSqm"), value: formatPrice(building.askingPrice, locale), color: "" },
+    { label: t("managementFee"), value: building.managementFee ? formatPrice(building.managementFee, locale) : "—", color: "" },
     { label: t("finishLevel"), value: building.finish || "—", color: "text-muted-foreground" },
   ]
 

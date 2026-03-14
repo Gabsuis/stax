@@ -1,8 +1,8 @@
 "use client"
 
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
 import { TenantBlock, Building } from "@/types"
-import { getLeaseColor, getLeaseLabel } from "@/lib/leaseColors"
+import { getLeaseColor, getLeaseLabelParts } from "@/lib/leaseColors"
 import { formatSqm, formatPrice, formatDate } from "@/lib/utils"
 import { MousePointerClick } from "lucide-react"
 
@@ -13,6 +13,8 @@ interface Props {
 
 export default function BlockDetail({ block, building }: Props) {
   const t = useTranslations("detail")
+  const tLease = useTranslations("lease")
+  const locale = useLocale()
 
   if (!block) {
     return (
@@ -25,14 +27,16 @@ export default function BlockDetail({ block, building }: Props) {
 
   const isVacant = block.status === "vacant"
   const color = getLeaseColor(block.leaseEnd)
+  const leaseParts = getLeaseLabelParts(block.leaseEnd)
+  const leaseLabel = tLease(leaseParts.key, leaseParts.params)
 
   const rows = [
-    { label: t("area"), value: formatSqm(block.sqm) },
+    { label: t("area"), value: formatSqm(block.sqm, locale) },
     { label: t("tenant"), value: block.tenantName || "—" },
-    { label: t("askingPrice"), value: formatPrice(building.askingPrice) },
+    { label: t("askingPrice"), value: formatPrice(building.askingPrice, locale) },
     { label: t("allowance"), value: building.allowance },
     { label: t("finishLevel"), value: building.finish },
-    { label: t("leaseEnd"), value: formatDate(block.leaseEnd) },
+    { label: t("leaseEnd"), value: formatDate(block.leaseEnd, locale) },
   ]
 
   return (
@@ -49,7 +53,7 @@ export default function BlockDetail({ block, building }: Props) {
         {!isVacant && (
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
-            <span className="text-[10px] text-muted-foreground/60">{getLeaseLabel(block.leaseEnd)}</span>
+            <span className="text-[10px] text-muted-foreground/60">{leaseLabel}</span>
           </div>
         )}
       </div>

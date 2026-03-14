@@ -211,8 +211,8 @@ export default function LandingPage() {
               <div className="glass-strong rounded-2xl p-6">
                 <div className="flex items-center gap-2 mb-5">
                   <div className="w-2 h-2 rounded-full bg-lease-green/60" />
-                  <span className="text-sm font-medium">מגדל אמפא</span>
-                  <span className="text-[10px] text-muted-foreground/50 ms-1">ספיר 7, הרצליה פיתוח</span>
+                  <span className="text-sm font-medium">{t("landing.heroBuilding")}</span>
+                  <span className="text-[10px] text-muted-foreground/50 ms-1">{t("landing.heroAddress")}</span>
                 </div>
                 <HeroStack />
                 <div className="flex items-center gap-5 mt-5 pt-4 border-t border-border">

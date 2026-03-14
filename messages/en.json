@@ -32,7 +32,9 @@
     "editorDesc": "Create a new stacking plan from scratch",
     "editorF1": "Add floors and units with a click",
     "editorF2": "Edit tenants, areas, and lease dates",
-    "editorF3": "Live preview with lease urgency colors"
+    "editorF3": "Live preview with lease urgency colors",
+    "heroBuilding": "Ampa Tower",
+    "heroAddress": "Sapir 7, Herzliya Pituach"
   },
   "dashboard": {
     "title": "Property Portfolio",
