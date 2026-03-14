@@ -7,12 +7,8 @@ import { buildings as mockBuildings } from "@/data/buildings"
 import { Floor, TenantBlock } from "@/types"
 import { getLeaseColor, getLeaseLabel } from "@/lib/leaseColors"
 import { formatSqm } from "@/lib/utils"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { Plus, Trash2, Building2 } from "lucide-react"
+import { Plus, Trash2 } from "lucide-react"
 
 function generateId() {
   return Math.random().toString(36).slice(2, 9)
@@ -96,221 +92,214 @@ export default function EditorPage() {
   }
 
   const legend = [
-    { color: "#16a34a", label: tLegend("over24") },
-    { color: "#d97706", label: tLegend("6to24") },
-    { color: "#dc2626", label: tLegend("under6") },
-    { color: "transparent", border: "1px dashed rgba(255,255,255,0.3)", label: tLegend("vacant") },
+    { color: "#10b981", label: tLegend("over24") },
+    { color: "#f59e0b", label: tLegend("6to24") },
+    { color: "#f43f5e", label: tLegend("under6") },
+    { color: "transparent", border: "1px dashed rgba(255,255,255,0.2)", label: tLegend("vacant") },
   ]
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       <Sidebar buildings={mockBuildings} />
       <main className="flex-1 overflow-y-auto">
-        <div className="p-6 lg:p-8">
+        <div className="p-8">
           {/* Header */}
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
-            <p className="text-base text-muted-foreground mt-1">{t("subtitle")}</p>
+          <div className="mb-7">
+            <h1 className="text-3xl font-display tracking-tight">{t("title")}</h1>
+            <p className="text-sm text-muted-foreground/50 mt-1.5">{t("subtitle")}</p>
           </div>
 
           <div className="flex gap-6">
             {/* Left: Config */}
             <div className="w-[280px] shrink-0 space-y-4">
-              <Card>
-                <CardContent className="p-4 space-y-4">
-                  <div>
-                    <label className="text-sm text-muted-foreground block mb-1">{t("buildingName")}</label>
-                    <input
-                      type="text"
-                      value={buildingName}
-                      onChange={e => setBuildingName(e.target.value)}
-                      className="w-full bg-secondary border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm text-muted-foreground block mb-1">{t("floorSize")}</label>
-                    <input
-                      type="number"
-                      value={floorSize}
-                      onChange={e => setFloorSize(Number(e.target.value))}
-                      className="w-full bg-secondary border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                    />
-                  </div>
-                  <Button onClick={addFloor} variant="secondary" className="w-full" size="sm">
-                    <Plus className="w-3.5 h-3.5 me-1.5" />
-                    {t("addFloor")}
-                  </Button>
-                </CardContent>
-              </Card>
+              <div className="glass-strong rounded-2xl p-5 space-y-4">
+                <div>
+                  <label className="text-[10px] text-muted-foreground/50 uppercase tracking-[0.15em] block mb-2">{t("buildingName")}</label>
+                  <input
+                    type="text"
+                    value={buildingName}
+                    onChange={e => setBuildingName(e.target.value)}
+                    className="w-full bg-secondary/50 border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-muted-foreground/50 uppercase tracking-[0.15em] block mb-2">{t("floorSize")}</label>
+                  <input
+                    type="number"
+                    value={floorSize}
+                    onChange={e => setFloorSize(Number(e.target.value))}
+                    className="w-full bg-secondary/50 border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all data-value"
+                  />
+                </div>
+                <button
+                  onClick={addFloor}
+                  className="w-full flex items-center justify-center gap-2 glass rounded-lg px-4 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-all"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  {t("addFloor")}
+                </button>
+              </div>
 
               {/* Block editor */}
               {selectedBlock && selectedFloor && (
-                <Card>
-                  <CardContent className="p-4 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-medium">{t("editUnit")}</h3>
-                      <Badge variant="secondary" className="text-xs">{t("floor")} {selectedFloor.floor}</Badge>
-                    </div>
-                    <Separator />
+                <div className="glass-strong rounded-2xl p-5 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-medium">{t("editUnit")}</h3>
+                    <span className="text-[10px] text-muted-foreground/50 uppercase tracking-[0.15em] bg-secondary/50 rounded-full px-2.5 py-0.5">{t("floor")} {selectedFloor.floor}</span>
+                  </div>
+                  <div className="h-px bg-border" />
+                  <div>
+                    <label className="text-[10px] text-muted-foreground/50 uppercase tracking-[0.15em] block mb-2">{t("tenant")}</label>
+                    <input
+                      type="text"
+                      value={selectedBlock.tenantName || ""}
+                      onChange={e => updateBlock(selectedBlock.id, { tenantName: e.target.value || null })}
+                      placeholder={t("vacantPlaceholder")}
+                      className="w-full bg-secondary/50 border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-muted-foreground/50 uppercase tracking-[0.15em] block mb-2">{t("areaSqm")}</label>
+                    <input
+                      type="number"
+                      value={selectedBlock.sqm}
+                      onChange={e => updateBlock(selectedBlock.id, { sqm: Number(e.target.value) })}
+                      className="w-full bg-secondary/50 border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all data-value"
+                    />
+                  </div>
+                  {selectedBlock.tenantName && (
                     <div>
-                      <label className="text-sm text-muted-foreground block mb-1">{t("tenant")}</label>
+                      <label className="text-[10px] text-muted-foreground/50 uppercase tracking-[0.15em] block mb-2">{t("leaseEnd")}</label>
                       <input
-                        type="text"
-                        value={selectedBlock.tenantName || ""}
-                        onChange={e => updateBlock(selectedBlock.id, { tenantName: e.target.value || null })}
-                        placeholder={t("vacantPlaceholder")}
-                        className="w-full bg-secondary border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                        type="month"
+                        value={selectedBlock.leaseEnd ? `${selectedBlock.leaseEnd.getFullYear()}-${String(selectedBlock.leaseEnd.getMonth() + 1).padStart(2, '0')}` : ""}
+                        onChange={e => {
+                          if (e.target.value) {
+                            const [y, m] = e.target.value.split("-")
+                            updateBlock(selectedBlock.id, { leaseEnd: new Date(Number(y), Number(m) - 1, 1) })
+                          } else {
+                            updateBlock(selectedBlock.id, { leaseEnd: null })
+                          }
+                        }}
+                        className="w-full bg-secondary/50 border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
                       />
                     </div>
-                    <div>
-                      <label className="text-sm text-muted-foreground block mb-1">{t("areaSqm")}</label>
-                      <input
-                        type="number"
-                        value={selectedBlock.sqm}
-                        onChange={e => updateBlock(selectedBlock.id, { sqm: Number(e.target.value) })}
-                        className="w-full bg-secondary border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                      />
-                    </div>
-                    {selectedBlock.tenantName && (
-                      <div>
-                        <label className="text-sm text-muted-foreground block mb-1">{t("leaseEnd")}</label>
-                        <input
-                          type="month"
-                          value={selectedBlock.leaseEnd ? `${selectedBlock.leaseEnd.getFullYear()}-${String(selectedBlock.leaseEnd.getMonth() + 1).padStart(2, '0')}` : ""}
-                          onChange={e => {
-                            if (e.target.value) {
-                              const [y, m] = e.target.value.split("-")
-                              updateBlock(selectedBlock.id, { leaseEnd: new Date(Number(y), Number(m) - 1, 1) })
-                            } else {
-                              updateBlock(selectedBlock.id, { leaseEnd: null })
-                            }
-                          }}
-                          className="w-full bg-secondary border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                        />
-                      </div>
-                    )}
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={() => splitBlock(selectedFloor.floor, selectedBlock.id)}
-                        variant="secondary"
-                        size="sm"
-                        className="flex-1"
-                        disabled={selectedBlock.sqm < 100}
-                      >
-                        {t("split")}
-                      </Button>
-                      <Button
-                        onClick={() => removeBlock(selectedFloor.floor, selectedBlock.id)}
-                        variant="secondary"
-                        size="sm"
-                        className="flex-1"
-                        disabled={selectedFloor.blocks.length <= 1}
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                  )}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => splitBlock(selectedFloor.floor, selectedBlock.id)}
+                      disabled={selectedBlock.sqm < 100}
+                      className="flex-1 glass rounded-lg px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-all disabled:opacity-30"
+                    >
+                      {t("split")}
+                    </button>
+                    <button
+                      onClick={() => removeBlock(selectedFloor.floor, selectedBlock.id)}
+                      disabled={selectedFloor.blocks.length <= 1}
+                      className="glass rounded-lg px-3 py-2 text-xs text-muted-foreground hover:text-lease-red transition-all disabled:opacity-30"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
 
             {/* Right: Preview */}
             <div className="flex-1">
-              <Card>
-                <CardContent className="p-5">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                      <Building2 className="w-4 h-4 text-muted-foreground" />
-                      <h2 className="text-base font-semibold">{buildingName}</h2>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      {legend.map((l) => (
-                        <div key={l.label} className="flex items-center gap-1.5">
-                          <div
-                            className="w-3 h-3 rounded-[3px]"
-                            style={{
-                              backgroundColor: l.color === "transparent" ? "transparent" : l.color,
-                              border: "border" in l ? l.border : `2px solid ${l.color}`,
-                            }}
-                          />
-                          <span className="text-xs text-muted-foreground">{l.label}</span>
-                        </div>
-                      ))}
-                    </div>
+              <div className="glass-strong rounded-2xl p-6">
+                <div className="flex items-center justify-between mb-5">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-2 h-2 rounded-full bg-primary/30" />
+                    <h2 className="text-base font-medium tracking-tight">{buildingName}</h2>
                   </div>
-
-                  <div className="flex flex-col gap-[3px]">
-                    {[...floors].reverse().map((floor) => (
-                      <div key={floor.floor} className="flex items-center gap-2 group">
-                        <span className="w-8 shrink-0 text-sm text-muted-foreground text-start font-mono tabular-nums font-medium">
-                          {floor.floor}
-                        </span>
-                        <div className="flex flex-1 gap-[2px]">
-                          {floor.blocks.map((block) => {
-                            const pct = (block.sqm / floor.totalSqm) * 100
-                            const isVacant = block.status === "vacant"
-                            const color = getLeaseColor(block.leaseEnd)
-                            const isSelected = block.id === selectedBlockId
-
-                            return (
-                              <Tooltip key={block.id}>
-                                <TooltipTrigger
-                                  onClick={() => setSelectedBlockId(block.id)}
-                                  className="relative flex items-center justify-center cursor-pointer transition-all duration-150 hover:brightness-125"
-                                  style={{
-                                    width: `${pct}%`,
-                                    minWidth: "20px",
-                                    height: 44,
-                                    borderRadius: 6,
-                                    ...(isVacant
-                                      ? {
-                                          background: "rgba(255,255,255,0.04)",
-                                          border: "1.5px dashed rgba(255,255,255,0.18)",
-                                        }
-                                      : {
-                                          background: color + "1a",
-                                          borderInlineStart: `3px solid ${color}`,
-                                        }),
-                                    ...(isSelected
-                                      ? {
-                                          outline: "2px solid rgba(255,255,255,0.4)",
-                                          outlineOffset: -1,
-                                        }
-                                      : {}),
-                                  }}
-                                >
-                                  {pct > 18 && (
-                                    <span
-                                      className="truncate px-2"
-                                      style={{
-                                        fontSize: 13,
-                                        fontWeight: 600,
-                                        color: isVacant ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.7)",
-                                      }}
-                                    >
-                                      {isVacant ? tLegend("vacant") : block.tenantName}
-                                    </span>
-                                  )}
-                                </TooltipTrigger>
-                                <TooltipContent side="top" className="text-sm">
-                                  <p className="font-medium">{block.tenantName || tLegend("vacant")}</p>
-                                  <p className="text-muted-foreground">{formatSqm(block.sqm)} · {getLeaseLabel(block.leaseEnd)}</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            )
-                          })}
-                        </div>
-                        <button
-                          onClick={() => removeFloor(floor.floor)}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity w-6 h-6 flex items-center justify-center rounded hover:bg-secondary"
-                        >
-                          <Trash2 className="w-3.5 h-3.5 text-muted-foreground" />
-                        </button>
+                  <div className="flex items-center gap-4">
+                    {legend.map((l) => (
+                      <div key={l.label} className="flex items-center gap-1.5">
+                        <div
+                          className="w-2.5 h-2.5 rounded-[3px]"
+                          style={{
+                            backgroundColor: l.color === "transparent" ? "transparent" : l.color,
+                            border: "border" in l ? l.border : `2px solid ${l.color}`,
+                          }}
+                        />
+                        <span className="text-[10px] text-muted-foreground/50">{l.label}</span>
                       </div>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+
+                <div className="flex flex-col gap-[3px]">
+                  {[...floors].reverse().map((floor) => (
+                    <div key={floor.floor} className="flex items-center gap-2.5 group">
+                      <span className="w-7 shrink-0 text-[11px] text-muted-foreground/40 text-start font-mono data-value font-medium">
+                        {floor.floor}
+                      </span>
+                      <div className="flex flex-1 gap-[2px]">
+                        {floor.blocks.map((block) => {
+                          const pct = (block.sqm / floor.totalSqm) * 100
+                          const isVacant = block.status === "vacant"
+                          const color = getLeaseColor(block.leaseEnd)
+                          const isSelected = block.id === selectedBlockId
+
+                          return (
+                            <Tooltip key={block.id}>
+                              <TooltipTrigger
+                                onClick={() => setSelectedBlockId(block.id)}
+                                className="relative flex items-center justify-center cursor-pointer transition-all duration-200"
+                                style={{
+                                  width: `${pct}%`,
+                                  minWidth: "20px",
+                                  height: 44,
+                                  borderRadius: 8,
+                                  ...(isVacant
+                                    ? {
+                                        background: "rgba(255,255,255,0.02)",
+                                        border: "1.5px dashed rgba(255,255,255,0.1)",
+                                      }
+                                    : {
+                                        background: `linear-gradient(135deg, ${color}18, ${color}0a)`,
+                                        borderInlineStart: `3px solid ${color}`,
+                                      }),
+                                  ...(isSelected
+                                    ? {
+                                        outline: `2px solid ${isVacant ? "rgba(255,255,255,0.3)" : color}`,
+                                        outlineOffset: -1,
+                                      }
+                                    : {}),
+                                }}
+                              >
+                                {pct > 18 && (
+                                  <span
+                                    className="truncate px-2"
+                                    style={{
+                                      fontSize: 12,
+                                      fontWeight: 500,
+                                      color: isVacant ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.6)",
+                                    }}
+                                  >
+                                    {isVacant ? tLegend("vacant") : block.tenantName}
+                                  </span>
+                                )}
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="glass-strong text-sm rounded-lg">
+                                <p className="font-medium">{block.tenantName || tLegend("vacant")}</p>
+                                <p className="text-muted-foreground text-xs">{formatSqm(block.sqm)} · {getLeaseLabel(block.leaseEnd)}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          )
+                        })}
+                      </div>
+                      <button
+                        onClick={() => removeFloor(floor.floor)}
+                        className="opacity-0 group-hover:opacity-100 transition-all duration-200 w-6 h-6 flex items-center justify-center rounded-full hover:bg-secondary"
+                      >
+                        <Trash2 className="w-3 h-3 text-muted-foreground/40" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>

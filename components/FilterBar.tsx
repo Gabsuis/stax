@@ -23,10 +23,10 @@ function Pill({
     <button
       onClick={onClick}
       className={cn(
-        "rounded-md text-sm px-4 py-2 font-medium transition-colors",
+        "rounded-full text-xs px-4 py-2 font-medium transition-all duration-300",
         active
-          ? "bg-foreground text-background"
-          : "bg-secondary text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
+          ? "bg-primary text-primary-foreground shadow-sm"
+          : "glass text-muted-foreground hover:text-foreground"
       )}
     >
       {label}
@@ -53,10 +53,10 @@ export default function FilterBar({ areaFilter, classFilter, onAreaChange, onCla
   ]
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-3">
-        <span className="text-sm text-muted-foreground w-14 shrink-0">{t("area")}</span>
-        <div className="flex gap-1.5">
+    <div className="flex flex-wrap items-center gap-6">
+      <div className="flex items-center gap-2.5">
+        <span className="text-[10px] text-muted-foreground uppercase tracking-[0.15em]">{t("area")}</span>
+        <div className="flex gap-1">
           {areas.map((a) => (
             <Pill
               key={a.value}
@@ -67,9 +67,10 @@ export default function FilterBar({ areaFilter, classFilter, onAreaChange, onCla
           ))}
         </div>
       </div>
-      <div className="flex items-center gap-3">
-        <span className="text-sm text-muted-foreground w-14 shrink-0">{t("class")}</span>
-        <div className="flex gap-1.5">
+      <div className="w-px h-6 bg-border" />
+      <div className="flex items-center gap-2.5">
+        <span className="text-[10px] text-muted-foreground uppercase tracking-[0.15em]">{t("class")}</span>
+        <div className="flex gap-1">
           {classes.map((c) => (
             <Pill
               key={c.value}

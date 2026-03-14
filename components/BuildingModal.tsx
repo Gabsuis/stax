@@ -7,7 +7,6 @@ import KpiStrip from "./KpiStrip"
 import StackingPlan from "./StackingPlan"
 import BlockDetail from "./BlockDetail"
 import { X, MapPin } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
 
 interface Props {
   building: Building | null
@@ -49,28 +48,37 @@ export default function BuildingModal({ building, onClose }: Props) {
     <AnimatePresence>
       {building && (
         <div
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center p-6"
           onClick={onClose}
         >
+          {/* Backdrop */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.96, y: 8 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="absolute inset-0 bg-black/60 backdrop-blur-md"
+          />
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.94, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 8 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
-            className="bg-background border border-border rounded-xl w-full max-w-[1200px] max-h-[92vh] flex flex-col overflow-hidden shadow-2xl"
+            exit={{ opacity: 0, scale: 0.94, y: 12 }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            className="relative bg-background/95 backdrop-blur-2xl border border-border rounded-2xl w-full max-w-[1200px] max-h-[90vh] flex flex-col overflow-hidden shadow-2xl shadow-black/40"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-5 border-b border-border">
+            <div className="flex items-center justify-between px-7 py-5">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="min-w-0">
-                  <div className="flex items-center gap-2.5 mb-1">
-                    <h2 className="text-xl font-bold truncate">{building.name}</h2>
-                    <Badge variant="secondary" className="text-xs shrink-0">{building.class}</Badge>
+                  <div className="flex items-center gap-3 mb-1">
+                    <h2 className="text-xl font-display tracking-tight truncate">{building.name}</h2>
+                    <span className="text-[10px] text-muted-foreground/50 uppercase tracking-[0.15em] bg-secondary/50 rounded-full px-2.5 py-0.5 shrink-0">{building.class}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <MapPin className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                    <span className="text-sm text-muted-foreground truncate">
+                    <MapPin className="w-3 h-3 text-muted-foreground/30 shrink-0" />
+                    <span className="text-xs text-muted-foreground/50 truncate">
                       {building.address}
                       {building.owner !== "—" && ` · ${building.owner}`}
                     </span>
@@ -79,9 +87,9 @@ export default function BuildingModal({ building, onClose }: Props) {
               </div>
               <button
                 onClick={onClose}
-                className="w-9 h-9 flex items-center justify-center rounded-md hover:bg-secondary transition-colors shrink-0"
+                className="w-8 h-8 flex items-center justify-center rounded-full glass hover:bg-white/[0.06] transition-all duration-300 shrink-0"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4 text-muted-foreground" />
               </button>
             </div>
 

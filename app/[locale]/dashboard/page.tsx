@@ -9,7 +9,6 @@ import FilterBar from "@/components/FilterBar"
 import BuildingCard from "@/components/BuildingCard"
 import BuildingModal from "@/components/BuildingModal"
 import DashboardStats from "@/components/DashboardStats"
-import { Separator } from "@/components/ui/separator"
 
 export default function DashboardPage() {
   const t = useTranslations("dashboard")
@@ -32,19 +31,17 @@ export default function DashboardPage() {
     <div className="flex h-screen overflow-hidden bg-background">
       <Sidebar buildings={buildings} />
       <main className="flex-1 overflow-y-auto">
-        <div className="p-6 lg:p-8 space-y-6">
+        <div className="p-8 space-y-7">
           {/* Header */}
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
-            <p className="text-base text-muted-foreground mt-1">
+            <h1 className="text-3xl font-display tracking-tight">{t("title")}</h1>
+            <p className="text-sm text-muted-foreground/50 mt-1.5">
               {t("subtitle", { count: filtered.length })}
             </p>
           </div>
 
           {/* Stats */}
           <DashboardStats buildings={filtered} />
-
-          <Separator />
 
           {/* Filters */}
           <FilterBar

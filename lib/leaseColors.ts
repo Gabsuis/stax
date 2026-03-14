@@ -13,10 +13,10 @@ export function getLeaseUrgency(leaseEnd: Date | null): LeaseUrgency {
 export function getLeaseColor(leaseEnd: Date | null): string {
   const urgency = getLeaseUrgency(leaseEnd)
   const map: Record<LeaseUrgency, string> = {
-    safe: "#16a34a",
-    watch: "#d97706",
-    urgent: "#dc2626",
-    unknown: "#52525b",
+    safe: "#10b981",
+    watch: "#f59e0b",
+    urgent: "#f43f5e",
+    unknown: "#64748b",
   }
   return map[urgency]
 }
@@ -33,8 +33,8 @@ export function getLeaseLabel(leaseEnd: Date | null): string {
 }
 
 export const LEASE_LEGEND = [
-  { color: "#16a34a", label: "מעל 24 חודש" },
-  { color: "#d97706", label: "6–24 חודש" },
-  { color: "#dc2626", label: "פחות מ-6 חודש" },
+  { color: "#10b981", label: "מעל 24 חודש" },
+  { color: "#f59e0b", label: "6–24 חודש" },
+  { color: "#f43f5e", label: "פחות מ-6 חודש" },
   { color: "transparent", border: "1px dashed rgba(255,255,255,0.3)", label: "פנוי" },
 ] as const

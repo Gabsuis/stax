@@ -28,26 +28,25 @@ export default function TenantBlock({ block, floorTotalSqm, isSelected, onSelect
     <Tooltip>
       <TooltipTrigger
         onClick={() => onSelect(block.id)}
-        className="relative flex items-center cursor-pointer transition-all duration-150 hover:brightness-125 overflow-hidden"
+        className="relative flex items-center cursor-pointer transition-all duration-200 overflow-hidden"
         style={{
           width: `${pct}%`,
           minWidth: "24px",
           height: 44,
-          borderRadius: 6,
+          borderRadius: 8,
           ...(isVacant
             ? {
-                background: "rgba(255,255,255,0.03)",
-                border: "1.5px dashed rgba(255,255,255,0.2)",
+                background: "rgba(255,255,255,0.02)",
+                border: "1.5px dashed rgba(255,255,255,0.1)",
               }
             : {
-                background: color + "20",
+                background: `linear-gradient(135deg, ${color}18, ${color}0a)`,
                 borderInlineStart: `3px solid ${color}`,
               }),
           ...(isSelected
             ? {
-                outline: "2px solid rgba(255,255,255,0.5)",
+                outline: `2px solid ${isVacant ? "rgba(255,255,255,0.3)" : color}`,
                 outlineOffset: -1,
-                filter: "brightness(1.2)",
               }
             : {}),
         }}
@@ -57,19 +56,19 @@ export default function TenantBlock({ block, floorTotalSqm, isSelected, onSelect
             <span
               className="truncate leading-tight"
               style={{
-                fontSize: 13,
-                fontWeight: 600,
-                color: isVacant ? "rgba(255,255,255,0.35)" : "rgba(255,255,255,0.85)",
+                fontSize: 12,
+                fontWeight: 500,
+                color: isVacant ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.75)",
               }}
             >
               {isVacant ? t("vacant") : block.tenantName}
             </span>
             {!isVacant && pct > 20 && (
               <span
-                className="truncate leading-tight"
+                className="truncate leading-tight data-value"
                 style={{
-                  fontSize: 11,
-                  color: "rgba(255,255,255,0.4)",
+                  fontSize: 10,
+                  color: "rgba(255,255,255,0.3)",
                 }}
               >
                 {formatSqm(block.sqm)}
@@ -78,9 +77,9 @@ export default function TenantBlock({ block, floorTotalSqm, isSelected, onSelect
           </div>
         )}
       </TooltipTrigger>
-      <TooltipContent side="top" className="text-sm">
-        <p className="font-semibold">{block.tenantName || t("vacant")}</p>
-        <p className="text-muted-foreground">{formatSqm(block.sqm)} · {getLeaseLabel(block.leaseEnd)}</p>
+      <TooltipContent side="top" className="glass-strong text-sm rounded-lg">
+        <p className="font-medium">{block.tenantName || t("vacant")}</p>
+        <p className="text-muted-foreground text-xs">{formatSqm(block.sqm)} · {getLeaseLabel(block.leaseEnd)}</p>
       </TooltipContent>
     </Tooltip>
   )

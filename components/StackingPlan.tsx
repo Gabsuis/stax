@@ -19,34 +19,34 @@ const container = {
 }
 
 const item = {
-  hidden: { opacity: 0, x: -6 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.12 } },
+  hidden: { opacity: 0, x: -8 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.15, ease: "easeOut" as const } },
 }
 
 export default function StackingPlan({ building, selectedBlockId, onBlockSelect }: Props) {
   const t = useTranslations("legend")
 
   const legend = [
-    { color: "#16a34a", label: t("over24") },
-    { color: "#d97706", label: t("6to24") },
-    { color: "#dc2626", label: t("under6") },
-    { color: "transparent", border: "1px dashed rgba(255,255,255,0.3)", label: t("vacant") },
+    { color: "#10b981", label: t("over24") },
+    { color: "#f59e0b", label: t("6to24") },
+    { color: "#f43f5e", label: t("under6") },
+    { color: "transparent", border: "1px dashed rgba(255,255,255,0.2)", label: t("vacant") },
   ]
 
   return (
-    <div className="flex-1 overflow-y-auto px-6 py-5">
+    <div className="flex-1 overflow-y-auto px-7 py-5">
       {/* Legend */}
-      <div className="flex items-center gap-4 mb-5">
+      <div className="flex items-center gap-5 mb-5">
         {legend.map((l) => (
           <div key={l.label} className="flex items-center gap-2">
             <div
-              className="w-3 h-3 rounded-[3px]"
+              className="w-2.5 h-2.5 rounded-[3px]"
               style={{
                 backgroundColor: l.color === "transparent" ? "transparent" : l.color,
                 border: "border" in l ? l.border : `2px solid ${l.color}`,
               }}
             />
-            <span className="text-xs text-muted-foreground">{l.label}</span>
+            <span className="text-[10px] text-muted-foreground/60">{l.label}</span>
           </div>
         ))}
       </div>

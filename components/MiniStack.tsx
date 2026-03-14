@@ -5,7 +5,7 @@ import { getLeaseColor } from "@/lib/leaseColors"
 
 export default function MiniStack({ floors }: { floors: Floor[] }) {
   return (
-    <div className="flex flex-col-reverse gap-[1px]" style={{ width: 28, height: 56 }}>
+    <div className="flex flex-col-reverse gap-[1px] rounded-lg overflow-hidden" style={{ width: 32, height: 52 }}>
       {floors.map((floor) => {
         const hasVacant = floor.blocks.some(b => b.status === "vacant")
         const earliest = floor.blocks
@@ -17,19 +17,19 @@ export default function MiniStack({ floors }: { floors: Floor[] }) {
           })[0]
 
         const color = hasVacant && !earliest
-          ? "rgba(255,255,255,0.1)"
+          ? "rgba(255,255,255,0.06)"
           : hasVacant
-            ? "rgba(255,255,255,0.15)"
+            ? "rgba(255,255,255,0.08)"
             : earliest
-              ? getLeaseColor(earliest.leaseEnd) + "b3"
-              : "rgba(255,255,255,0.1)"
+              ? getLeaseColor(earliest.leaseEnd) + "40"
+              : "rgba(255,255,255,0.06)"
 
         return (
           <div
             key={floor.floor}
-            className="w-full rounded-[1px]"
+            className="w-full transition-all duration-300 group-hover:opacity-90"
             style={{
-              height: Math.max(2, Math.round(56 / floors.length) - 1),
+              height: Math.max(2, Math.round(52 / floors.length) - 1),
               backgroundColor: color,
             }}
           />

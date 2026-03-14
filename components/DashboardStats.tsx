@@ -3,8 +3,6 @@
 import { useTranslations } from "next-intl"
 import { Building } from "@/types"
 import { formatSqm, formatPrice } from "@/lib/utils"
-import { Card, CardContent } from "@/components/ui/card"
-import { Building2, TrendingDown, DollarSign, Layers, AlertTriangle, BarChart3 } from "lucide-react"
 
 interface Props {
   buildings: Building[]
@@ -32,29 +30,31 @@ export default function DashboardStats({ buildings }: Props) {
   }, 0)
 
   const stats = [
-    { label: t("totalBuildings"), value: `${totalBuildings}`, icon: Building2, color: "" },
-    { label: t("totalSqm"), value: formatSqm(totalSqm), icon: Layers, color: "" },
-    { label: t("vacantSqm"), value: formatSqm(totalVacant), icon: TrendingDown, color: "text-lease-red" },
-    { label: t("avgOccupancy"), value: `${avgOcc}%`, icon: BarChart3, color: avgOcc >= 85 ? "" : "text-lease-amber" },
-    { label: t("avgPrice"), value: formatPrice(avgPrice), icon: DollarSign, color: "" },
-    { label: t("atRiskLeases"), value: `${urgentLeases}`, icon: AlertTriangle, color: urgentLeases > 0 ? "text-lease-red" : "" },
+    { label: t("totalBuildings"), value: `${totalBuildings}`, accent: false },
+    { label: t("totalSqm"), value: formatSqm(totalSqm), accent: false },
+    { label: t("vacantSqm"), value: formatSqm(totalVacant), accent: true, color: "text-lease-red" },
+    { label: t("avgOccupancy"), value: `${avgOcc}%`, accent: avgOcc < 85, color: "text-lease-amber" },
+    { label: t("avgPrice"), value: formatPrice(avgPrice), accent: false },
+    { label: t("atRiskLeases"), value: `${urgentLeases}`, accent: urgentLeases > 0, color: "text-lease-red" },
   ]
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-      {stats.map((stat) => (
-        <Card key={stat.label} className="bg-card">
-          <CardContent className="p-5">
-            <div className="flex items-center gap-2.5 mb-3">
-              <stat.icon className="w-5 h-5 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">{stat.label}</span>
+    <div className="glass-strong rounded-2xl overflow-hidden">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+        {stats.map((stat, i) => (
+          <div
+            key={stat.label}
+            className={`py-5 px-5 ${i > 0 ? "border-s border-border" : ""}`}
+          >
+            <div className="text-[10px] text-muted-foreground uppercase tracking-[0.15em] mb-3">
+              {stat.label}
             </div>
-            <div className={`text-3xl font-bold tabular-nums ${stat.color}`}>
+            <div className={`text-2xl font-semibold data-value tracking-tight ${stat.accent ? stat.color : ""}`}>
               {stat.value}
             </div>
-          </CardContent>
-        </Card>
-      ))}
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

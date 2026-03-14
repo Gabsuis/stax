@@ -16,7 +16,7 @@ export default function KpiStrip({ building }: Props) {
   const cells = [
     { label: t("totalSqm"), value: formatSqm(building.totalSqm), color: "" },
     { label: t("vacantSqm"), value: formatSqm(building.vacantSqm), color: "text-lease-red" },
-    { label: t("occupancy"), value: `${occ}%`, color: occ >= 85 ? "" : occ >= 65 ? "text-muted-foreground" : "text-lease-red" },
+    { label: t("occupancy"), value: `${occ}%`, color: occ >= 85 ? "text-lease-green" : occ >= 65 ? "" : "text-lease-red" },
     { label: t("floors"), value: `${building.floorCount}`, color: "" },
     { label: t("vacantFloors"), value: `${vacantFloors}`, color: vacantFloors > 0 ? "text-lease-red" : "" },
     { label: t("pricePerSqm"), value: formatPrice(building.askingPrice), color: "" },
@@ -25,18 +25,20 @@ export default function KpiStrip({ building }: Props) {
   ]
 
   return (
-    <div className="grid grid-cols-4 md:grid-cols-8 border-b border-border bg-card/50">
-      {cells.map((cell) => (
-        <div
-          key={cell.label}
-          className="py-4 px-3 text-center border-s border-border last:border-s-0"
-        >
-          <div className={`text-xl font-bold tabular-nums ${cell.color}`}>
-            {cell.value}
+    <div className="mx-7 mb-4 glass-strong rounded-xl overflow-hidden">
+      <div className="grid grid-cols-4 md:grid-cols-8">
+        {cells.map((cell, i) => (
+          <div
+            key={cell.label}
+            className={`py-3.5 px-3 text-center ${i > 0 ? "border-s border-border" : ""}`}
+          >
+            <div className={`text-base font-semibold data-value ${cell.color}`}>
+              {cell.value}
+            </div>
+            <div className="text-[9px] text-muted-foreground/50 mt-1 uppercase tracking-[0.1em]">{cell.label}</div>
           </div>
-          <div className="text-xs text-muted-foreground mt-1">{cell.label}</div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   )
 }

@@ -4,7 +4,6 @@ import { useTranslations } from "next-intl"
 import { Link, usePathname } from "@/i18n/navigation"
 import { Building } from "@/types"
 import { formatSqm } from "@/lib/utils"
-import { Separator } from "@/components/ui/separator"
 import { LayoutDashboard, PenTool, Home } from "lucide-react"
 import LanguageSwitcher from "./LanguageSwitcher"
 
@@ -27,33 +26,37 @@ export default function Sidebar({ buildings }: Props) {
   ]
 
   return (
-    <aside className="w-[240px] h-screen sticky top-0 shrink-0 border-s border-border bg-card/30 flex flex-col">
+    <aside className="w-[220px] h-screen sticky top-0 shrink-0 border-s border-border bg-sidebar flex flex-col">
       {/* Logo */}
-      <div className="px-5 py-6 flex items-center justify-between">
-        <Link href="/" className="block">
-          <h1 className="text-2xl font-bold tracking-tight">{t("common.stax")}</h1>
-          <p className="text-xs text-muted-foreground tracking-wide mt-0.5">{t("common.tagline")}</p>
+      <div className="px-5 pt-7 pb-6">
+        <Link href="/" className="block group">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
+              <span className="font-display text-base text-primary font-normal italic">S</span>
+            </div>
+            <div>
+              <h1 className="text-lg font-semibold tracking-tight">{t("common.stax")}</h1>
+              <p className="text-[10px] text-muted-foreground tracking-[0.15em] uppercase">{t("common.tagline")}</p>
+            </div>
+          </div>
         </Link>
-        <LanguageSwitcher />
       </div>
 
-      <Separator />
-
       {/* Nav */}
-      <nav className="flex-1 px-3 py-4 space-y-1">
+      <nav className="flex-1 px-3 space-y-0.5">
         {nav.map((item) => {
           const isActive = pathname === item.href
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-4 py-2.5 rounded-md text-base transition-colors ${
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${
                 isActive
-                  ? "bg-secondary text-foreground font-semibold"
-                  : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                  ? "bg-primary/8 text-foreground font-medium"
+                  : "text-muted-foreground hover:text-foreground hover:bg-primary/5"
               }`}
             >
-              <item.icon className="w-5 h-5" />
+              <item.icon className="w-4 h-4" strokeWidth={isActive ? 2 : 1.5} />
               {item.label}
             </Link>
           )
@@ -61,18 +64,21 @@ export default function Sidebar({ buildings }: Props) {
       </nav>
 
       {/* Portfolio KPIs */}
-      <div className="px-3 pb-5 space-y-2.5">
-        <div className="rounded-lg border border-border bg-card p-4">
-          <div className="text-xs text-muted-foreground mb-1.5">{t("dashboard.totalVacant")}</div>
-          <div className="text-2xl font-bold tabular-nums text-lease-red">
+      <div className="px-3 pb-4 space-y-2">
+        <div className="rounded-xl glass p-4">
+          <div className="text-[10px] text-muted-foreground uppercase tracking-widest mb-2">{t("dashboard.totalVacant")}</div>
+          <div className="text-xl font-semibold data-value text-lease-red">
             {formatSqm(totalVacant)}
           </div>
         </div>
-        <div className="rounded-lg border border-border bg-card p-4">
-          <div className="text-xs text-muted-foreground mb-1.5">{t("dashboard.avgOccupancy")}</div>
-          <div className="text-2xl font-bold tabular-nums">
+        <div className="rounded-xl glass p-4">
+          <div className="text-[10px] text-muted-foreground uppercase tracking-widest mb-2">{t("dashboard.avgOccupancy")}</div>
+          <div className="text-xl font-semibold data-value">
             {avgOcc}%
           </div>
+        </div>
+        <div className="px-1 pt-1">
+          <LanguageSwitcher />
         </div>
       </div>
     </aside>

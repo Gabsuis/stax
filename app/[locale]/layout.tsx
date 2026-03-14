@@ -1,4 +1,4 @@
-import { Geist, Geist_Mono } from "next/font/google"
+import { DM_Sans, Instrument_Serif, JetBrains_Mono } from "next/font/google"
 import { NextIntlClientProvider, hasLocale } from "next-intl"
 import { getMessages, setRequestLocale } from "next-intl/server"
 import { notFound } from "next/navigation"
@@ -6,14 +6,23 @@ import { routing } from "@/i18n/routing"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import "../globals.css"
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const dmSans = DM_Sans({
+  variable: "--font-sans",
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
 })
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const instrumentSerif = Instrument_Serif({
+  variable: "--font-serif",
   subsets: ["latin"],
+  weight: "400",
+  style: ["normal", "italic"],
+})
+
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-mono",
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
 })
 
 export function generateStaticParams() {
@@ -39,7 +48,7 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale} dir={dir} className="dark">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${dmSans.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable} antialiased`}>
         <NextIntlClientProvider messages={messages}>
           <TooltipProvider>
             {children}

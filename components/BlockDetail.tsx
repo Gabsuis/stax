@@ -4,8 +4,6 @@ import { useTranslations } from "next-intl"
 import { TenantBlock, Building } from "@/types"
 import { getLeaseColor, getLeaseLabel } from "@/lib/leaseColors"
 import { formatSqm, formatPrice, formatDate } from "@/lib/utils"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
 import { MousePointerClick } from "lucide-react"
 
 interface Props {
@@ -18,9 +16,9 @@ export default function BlockDetail({ block, building }: Props) {
 
   if (!block) {
     return (
-      <div className="w-[300px] shrink-0 border-s border-border bg-card/50 flex flex-col items-center justify-center gap-3 p-8">
-        <MousePointerClick className="w-10 h-10 text-muted-foreground/30" />
-        <p className="text-base text-muted-foreground text-center">{t("clickForDetails")}</p>
+      <div className="w-[280px] shrink-0 border-s border-border bg-secondary/30 flex flex-col items-center justify-center gap-3 p-8">
+        <MousePointerClick className="w-8 h-8 text-muted-foreground/20" />
+        <p className="text-sm text-muted-foreground/40 text-center">{t("clickForDetails")}</p>
       </div>
     )
   }
@@ -38,33 +36,37 @@ export default function BlockDetail({ block, building }: Props) {
   ]
 
   return (
-    <div className="w-[300px] shrink-0 border-s border-border bg-card/50 overflow-y-auto p-6">
+    <div className="w-[280px] shrink-0 border-s border-border bg-secondary/30 overflow-y-auto p-6">
       {/* Status */}
       <div className="flex items-center gap-2.5 mb-4">
-        <Badge variant={isVacant ? "outline" : "secondary"} className="text-sm px-3 py-1">
+        <span className={`text-[10px] uppercase tracking-[0.15em] rounded-full px-3 py-1 ${
+          isVacant
+            ? "glass text-muted-foreground"
+            : "bg-secondary/80 text-foreground"
+        }`}>
           {isVacant ? t("vacant") : t("occupied")}
-        </Badge>
+        </span>
         {!isVacant && (
-          <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: color }} />
-            <span className="text-sm text-muted-foreground">{getLeaseLabel(block.leaseEnd)}</span>
+          <div className="flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
+            <span className="text-[10px] text-muted-foreground/60">{getLeaseLabel(block.leaseEnd)}</span>
           </div>
         )}
       </div>
 
       {/* Tenant name */}
       {!isVacant && (
-        <h3 className="text-lg font-bold mb-4">{block.tenantName}</h3>
+        <h3 className="text-base font-display tracking-tight mb-5">{block.tenantName}</h3>
       )}
 
-      <Separator className="mb-5" />
+      <div className="h-px bg-border mb-5" />
 
       {/* Detail rows */}
       <div className="space-y-4">
         {rows.map((row) => (
           <div key={row.label} className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">{row.label}</span>
-            <span className="text-base font-semibold">{row.value}</span>
+            <span className="text-[11px] text-muted-foreground/50 uppercase tracking-[0.1em]">{row.label}</span>
+            <span className="text-sm font-medium data-value">{row.value}</span>
           </div>
         ))}
       </div>
@@ -72,10 +74,10 @@ export default function BlockDetail({ block, building }: Props) {
       {/* Notes */}
       {block.notes && (
         <>
-          <Separator className="my-5" />
+          <div className="h-px bg-border my-5" />
           <div>
-            <span className="text-sm text-muted-foreground">{t("notes")}</span>
-            <p className="text-base mt-1.5">{block.notes}</p>
+            <span className="text-[11px] text-muted-foreground/50 uppercase tracking-[0.1em]">{t("notes")}</span>
+            <p className="text-sm mt-2 text-muted-foreground leading-relaxed">{block.notes}</p>
           </div>
         </>
       )}
