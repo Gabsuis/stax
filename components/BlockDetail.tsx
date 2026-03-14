@@ -19,8 +19,8 @@ export default function BlockDetail({ block, building }: Props) {
   if (!block) {
     return (
       <div className="w-[280px] shrink-0 border-s border-border bg-secondary/30 flex flex-col items-center justify-center gap-3 p-8">
-        <MousePointerClick className="w-8 h-8 text-muted-foreground/20" />
-        <p className="text-sm text-muted-foreground/40 text-center">{t("clickForDetails")}</p>
+        <MousePointerClick className="w-8 h-8 text-muted-foreground/50" />
+        <p className="text-sm text-muted-foreground text-center">{t("clickForDetails")}</p>
       </div>
     )
   }
@@ -43,7 +43,7 @@ export default function BlockDetail({ block, building }: Props) {
     <div className="w-[280px] shrink-0 border-s border-border bg-secondary/30 overflow-y-auto p-6">
       {/* Status */}
       <div className="flex items-center gap-2.5 mb-4">
-        <span className={`text-[10px] uppercase tracking-[0.15em] rounded-full px-3 py-1 ${
+        <span className={`text-xs uppercase tracking-[0.15em] rounded-full px-3 py-1 ${
           isVacant
             ? "glass text-muted-foreground"
             : "bg-secondary/80 text-foreground"
@@ -53,7 +53,7 @@ export default function BlockDetail({ block, building }: Props) {
         {!isVacant && (
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
-            <span className="text-[10px] text-muted-foreground/60">{leaseLabel}</span>
+            <span className="text-xs text-muted-foreground">{leaseLabel}</span>
           </div>
         )}
       </div>
@@ -69,7 +69,7 @@ export default function BlockDetail({ block, building }: Props) {
       <div className="space-y-4">
         {rows.map((row) => (
           <div key={row.label} className="flex items-center justify-between">
-            <span className="text-[11px] text-muted-foreground/50 uppercase tracking-[0.1em]">{row.label}</span>
+            <span className="text-xs text-muted-foreground uppercase tracking-[0.1em]">{row.label}</span>
             <span className="text-sm font-medium data-value">{row.value}</span>
           </div>
         ))}
@@ -80,7 +80,7 @@ export default function BlockDetail({ block, building }: Props) {
         <>
           <div className="h-px bg-border my-5" />
           <div>
-            <span className="text-[11px] text-muted-foreground/50 uppercase tracking-[0.1em]">{t("notes")}</span>
+            <span className="text-xs text-muted-foreground uppercase tracking-[0.1em]">{t("notes")}</span>
             <p className="text-sm mt-2 text-muted-foreground leading-relaxed">{block.notes}</p>
           </div>
         </>

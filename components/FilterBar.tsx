@@ -55,7 +55,7 @@ export default function FilterBar({ areaFilter, classFilter, onAreaChange, onCla
   return (
     <div className="flex flex-wrap items-center gap-6">
       <div className="flex items-center gap-2.5">
-        <span className="text-[10px] text-muted-foreground uppercase tracking-[0.15em]">{t("area")}</span>
+        <span className="text-xs text-muted-foreground uppercase tracking-[0.15em]">{t("area")}</span>
         <div className="flex gap-1">
           {areas.map((a) => (
             <Pill
@@ -69,7 +69,7 @@ export default function FilterBar({ areaFilter, classFilter, onAreaChange, onCla
       </div>
       <div className="w-px h-6 bg-border" />
       <div className="flex items-center gap-2.5">
-        <span className="text-[10px] text-muted-foreground uppercase tracking-[0.15em]">{t("class")}</span>
+        <span className="text-xs text-muted-foreground uppercase tracking-[0.15em]">{t("class")}</span>
         <div className="flex gap-1">
           {classes.map((c) => (
             <Pill

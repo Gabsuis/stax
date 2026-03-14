@@ -46,7 +46,7 @@ export default function StackingPlan({ building, selectedBlockId, onBlockSelect 
                 border: "border" in l ? l.border : `2px solid ${l.color}`,
               }}
             />
-            <span className="text-[10px] text-muted-foreground/60">{l.label}</span>
+            <span className="text-xs text-muted-foreground">{l.label}</span>
           </div>
         ))}
       </div>

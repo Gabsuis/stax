@@ -37,7 +37,7 @@ export default function Sidebar({ buildings }: Props) {
             </div>
             <div>
               <h1 className="text-lg font-semibold tracking-tight">{t("common.stax")}</h1>
-              <p className="text-[10px] text-muted-foreground tracking-[0.15em] uppercase">{t("common.tagline")}</p>
+              <p className="text-xs text-muted-foreground tracking-[0.15em] uppercase">{t("common.tagline")}</p>
             </div>
           </div>
         </Link>
@@ -67,13 +67,13 @@ export default function Sidebar({ buildings }: Props) {
       {/* Portfolio KPIs */}
       <div className="px-3 pb-4 space-y-2">
         <div className="rounded-xl glass p-4">
-          <div className="text-[10px] text-muted-foreground uppercase tracking-widest mb-2">{t("dashboard.totalVacant")}</div>
+          <div className="text-xs text-muted-foreground uppercase tracking-widest mb-2">{t("dashboard.totalVacant")}</div>
           <div className="text-xl font-semibold data-value text-lease-red">
             {formatSqm(totalVacant, locale)}
           </div>
         </div>
         <div className="rounded-xl glass p-4">
-          <div className="text-[10px] text-muted-foreground uppercase tracking-widest mb-2">{t("dashboard.avgOccupancy")}</div>
+          <div className="text-xs text-muted-foreground uppercase tracking-widest mb-2">{t("dashboard.avgOccupancy")}</div>
           <div className="text-xl font-semibold data-value">
             {avgOcc}%
           </div>

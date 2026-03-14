@@ -36,7 +36,7 @@ export default function KpiStrip({ building }: Props) {
             <div className={`text-base font-semibold data-value ${cell.color}`}>
               {cell.value}
             </div>
-            <div className="text-[9px] text-muted-foreground/50 mt-1 uppercase tracking-[0.1em]">{cell.label}</div>
+            <div className="text-xs text-muted-foreground mt-1 uppercase tracking-[0.1em]">{cell.label}</div>
           </div>
         ))}
       </div>

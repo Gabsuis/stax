@@ -28,7 +28,7 @@ function HeroStack() {
             transition={{ delay: 0.5 + i * 0.035, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
             className="flex gap-[2px]"
           >
-            <span className="w-6 shrink-0 text-[10px] text-muted-foreground/40 font-mono data-value flex items-center justify-end pe-2">
+            <span className="w-6 shrink-0 text-xs text-muted-foreground font-mono data-value flex items-center justify-end pe-2">
               {floor.floor}
             </span>
             {floor.blocks.map((block) => {
@@ -57,7 +57,7 @@ function HeroStack() {
                   }}
                 >
                   {pct > 25 && !isVacant && (
-                    <span className="text-[9px] text-white/30 truncate px-2 font-medium">{block.tenantName}</span>
+                    <span className="text-xs text-white/30 truncate px-2 font-medium">{block.tenantName}</span>
                   )}
                 </motion.div>
               )
@@ -98,7 +98,7 @@ export default function LandingPage() {
               <span className="font-display text-sm text-primary italic">S</span>
             </div>
             <span className="text-sm font-medium tracking-tight">{t("common.stax")}</span>
-            <span className="text-[9px] text-muted-foreground/50 uppercase tracking-[0.2em]">{t("common.version")}</span>
+            <span className="text-xs text-muted-foreground uppercase tracking-[0.2em]">{t("common.version")}</span>
           </div>
           <div className="flex items-center gap-1">
             <LanguageSwitcher />
@@ -130,7 +130,7 @@ export default function LandingPage() {
               >
                 <div className="inline-flex items-center gap-2 glass rounded-full px-4 py-1.5 mb-8">
                   <div className="w-1.5 h-1.5 rounded-full bg-lease-green" />
-                  <span className="text-[11px] text-muted-foreground">{t("landing.badge")}</span>
+                  <span className="text-xs text-muted-foreground">{t("landing.badge")}</span>
                 </div>
               </motion.div>
 
@@ -143,7 +143,7 @@ export default function LandingPage() {
                 <span className="block text-5xl md:text-6xl lg:text-7xl font-display tracking-tight leading-[1.05]">
                   {t("landing.title1")}
                 </span>
-                <span className="block text-5xl md:text-6xl lg:text-7xl font-display italic tracking-tight leading-[1.05] text-muted-foreground/60">
+                <span className="block text-5xl md:text-6xl lg:text-7xl font-display italic tracking-tight leading-[1.05] text-muted-foreground">
                   {t("landing.title2")}
                 </span>
               </motion.h1>
@@ -186,17 +186,17 @@ export default function LandingPage() {
               >
                 <div>
                   <div className="text-3xl font-display data-value">{totalBuildings}</div>
-                  <div className="text-[10px] text-muted-foreground uppercase tracking-[0.15em] mt-1">{t("landing.buildings")}</div>
+                  <div className="text-xs text-muted-foreground uppercase tracking-[0.15em] mt-1">{t("landing.buildings")}</div>
                 </div>
                 <div className="w-px h-10 bg-border" />
                 <div>
                   <div className="text-3xl font-display data-value">{Math.round(totalSqm / 1000)}K</div>
-                  <div className="text-[10px] text-muted-foreground uppercase tracking-[0.15em] mt-1">{t("landing.totalSqm")}</div>
+                  <div className="text-xs text-muted-foreground uppercase tracking-[0.15em] mt-1">{t("landing.totalSqm")}</div>
                 </div>
                 <div className="w-px h-10 bg-border" />
                 <div>
                   <div className="text-3xl font-display data-value">{t("landing.herzliya")}</div>
-                  <div className="text-[10px] text-muted-foreground uppercase tracking-[0.15em] mt-1">{t("landing.market")}</div>
+                  <div className="text-xs text-muted-foreground uppercase tracking-[0.15em] mt-1">{t("landing.market")}</div>
                 </div>
               </motion.div>
             </div>
@@ -212,25 +212,25 @@ export default function LandingPage() {
                 <div className="flex items-center gap-2 mb-5">
                   <div className="w-2 h-2 rounded-full bg-lease-green/60" />
                   <span className="text-sm font-medium">{t("landing.heroBuilding")}</span>
-                  <span className="text-[10px] text-muted-foreground/50 ms-1">{t("landing.heroAddress")}</span>
+                  <span className="text-xs text-muted-foreground ms-1">{t("landing.heroAddress")}</span>
                 </div>
                 <HeroStack />
                 <div className="flex items-center gap-5 mt-5 pt-4 border-t border-border">
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-[2px]" style={{ backgroundColor: "#10b981" }} />
-                    <span className="text-[10px] text-muted-foreground/60">{t("legend.over24")}</span>
+                    <span className="text-xs text-muted-foreground">{t("legend.over24")}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-[2px]" style={{ backgroundColor: "#f59e0b" }} />
-                    <span className="text-[10px] text-muted-foreground/60">{t("legend.6to24")}</span>
+                    <span className="text-xs text-muted-foreground">{t("legend.6to24")}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-[2px]" style={{ backgroundColor: "#f43f5e" }} />
-                    <span className="text-[10px] text-muted-foreground/60">{t("legend.under6")}</span>
+                    <span className="text-xs text-muted-foreground">{t("legend.under6")}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-[2px] border border-dashed border-white/15" />
-                    <span className="text-[10px] text-muted-foreground/60">{t("legend.vacant")}</span>
+                    <span className="text-xs text-muted-foreground">{t("legend.vacant")}</span>
                   </div>
                 </div>
               </div>
@@ -339,10 +339,10 @@ export default function LandingPage() {
       <footer className="border-t border-border py-10 px-8">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <span className="font-display text-sm italic text-muted-foreground/50">S</span>
-            <span className="text-xs text-muted-foreground/40">{t("common.stax")} · {t("common.tagline")}</span>
+            <span className="font-display text-sm italic text-muted-foreground">S</span>
+            <span className="text-xs text-muted-foreground">{t("common.stax")} · {t("common.tagline")}</span>
           </div>
-          <div className="text-[10px] text-muted-foreground/30 uppercase tracking-[0.15em]">{t("common.demo")}</div>
+          <div className="text-xs text-muted-foreground uppercase tracking-[0.15em]">{t("common.demo")}</div>
         </div>
       </footer>
     </div>

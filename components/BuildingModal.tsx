@@ -74,11 +74,11 @@ export default function BuildingModal({ building, onClose }: Props) {
                 <div className="min-w-0">
                   <div className="flex items-center gap-3 mb-1">
                     <h2 className="text-xl font-display tracking-tight truncate">{building.name}</h2>
-                    <span className="text-[10px] text-muted-foreground/50 uppercase tracking-[0.15em] bg-secondary/50 rounded-full px-2.5 py-0.5 shrink-0">{building.class}</span>
+                    <span className="text-xs text-muted-foreground uppercase tracking-[0.15em] bg-secondary/50 rounded-full px-2.5 py-0.5 shrink-0">{building.class}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <MapPin className="w-3 h-3 text-muted-foreground/30 shrink-0" />
-                    <span className="text-xs text-muted-foreground/50 truncate">
+                    <MapPin className="w-3 h-3 text-muted-foreground shrink-0" />
+                    <span className="text-xs text-muted-foreground truncate">
                       {building.address}
                       {building.owner !== "—" && ` · ${building.owner}`}
                     </span>

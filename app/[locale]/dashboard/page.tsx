@@ -35,7 +35,7 @@ export default function DashboardPage() {
           {/* Header */}
           <div>
             <h1 className="text-3xl font-display tracking-tight">{t("title")}</h1>
-            <p className="text-sm text-muted-foreground/50 mt-1.5">
+            <p className="text-sm text-muted-foreground mt-1.5">
               {t("subtitle", { count: filtered.length })}
             </p>
           </div>

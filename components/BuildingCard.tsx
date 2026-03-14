@@ -25,17 +25,17 @@ export default function BuildingCard({ building, onSelect }: Props) {
       <div className="flex items-start justify-between mb-5">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-[10px] text-muted-foreground/60 uppercase tracking-[0.15em] bg-secondary/50 rounded-full px-2.5 py-0.5">
+            <span className="text-xs text-muted-foreground uppercase tracking-[0.15em] bg-secondary/50 rounded-full px-2.5 py-0.5">
               {building.class}
             </span>
             {building.area && (
-              <span className="text-[10px] text-muted-foreground/40">{building.area}</span>
+              <span className="text-xs text-muted-foreground">{building.area}</span>
             )}
           </div>
           <h3 className="text-base font-semibold truncate tracking-tight">
             {locale === "he" ? building.name : building.nameEn}
           </h3>
-          <p className="text-xs text-muted-foreground/50 truncate mt-0.5">
+          <p className="text-xs text-muted-foreground truncate mt-0.5">
             {locale === "he" ? building.nameEn : building.name}
           </p>
         </div>
@@ -46,28 +46,28 @@ export default function BuildingCard({ building, onSelect }: Props) {
       <div className="grid grid-cols-3 gap-4 mb-5">
         <div>
           <div className="text-sm font-semibold data-value">{formatSqm(building.totalSqm, locale)}</div>
-          <div className="text-[10px] text-muted-foreground/50 mt-0.5">{t("totalSqm")}</div>
+          <div className="text-xs text-muted-foreground mt-0.5">{t("totalSqm")}</div>
         </div>
         <div>
           <div className="text-sm font-semibold data-value text-lease-red">{formatSqm(building.vacantSqm, locale)}</div>
-          <div className="text-[10px] text-muted-foreground/50 mt-0.5">{t("vacantSqm")}</div>
+          <div className="text-xs text-muted-foreground mt-0.5">{t("vacantSqm")}</div>
         </div>
         <div>
           <div className="text-sm font-semibold data-value">{formatPrice(building.askingPrice, locale)}</div>
-          <div className="text-[10px] text-muted-foreground/50 mt-0.5">{t("pricePerSqm")}</div>
+          <div className="text-xs text-muted-foreground mt-0.5">{t("pricePerSqm")}</div>
         </div>
       </div>
 
       {/* Address */}
       <div className="flex items-center gap-2 mb-4">
-        <MapPin className="w-3 h-3 text-muted-foreground/30 shrink-0" />
-        <span className="text-[11px] text-muted-foreground/40 truncate">{building.address}</span>
+        <MapPin className="w-3 h-3 text-muted-foreground shrink-0" />
+        <span className="text-xs text-muted-foreground truncate">{building.address}</span>
       </div>
 
       {/* Occupancy bar */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-[10px] text-muted-foreground/50 uppercase tracking-[0.1em]">{t("occupancy")}</span>
+          <span className="text-xs text-muted-foreground uppercase tracking-[0.1em]">{t("occupancy")}</span>
           <span className={`text-xs font-semibold data-value ${occ >= 85 ? "text-lease-green" : occ >= 65 ? "text-muted-foreground" : "text-lease-red"}`}>
             {occ}%
           </span>

@@ -47,7 +47,7 @@ export default function DashboardStats({ buildings }: Props) {
             key={stat.label}
             className={`py-5 px-5 ${i > 0 ? "border-s border-border" : ""}`}
           >
-            <div className="text-[10px] text-muted-foreground uppercase tracking-[0.15em] mb-3">
+            <div className="text-xs text-muted-foreground uppercase tracking-[0.15em] mb-3">
               {stat.label}
             </div>
             <div className={`text-2xl font-semibold data-value tracking-tight ${stat.accent ? stat.color : ""}`}>

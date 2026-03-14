@@ -108,7 +108,7 @@ export default function EditorPage() {
           {/* Header */}
           <div className="mb-7">
             <h1 className="text-3xl font-display tracking-tight">{t("title")}</h1>
-            <p className="text-sm text-muted-foreground/50 mt-1.5">{t("subtitle")}</p>
+            <p className="text-sm text-muted-foreground mt-1.5">{t("subtitle")}</p>
           </div>
 
           <div className="flex gap-6">
@@ -116,7 +116,7 @@ export default function EditorPage() {
             <div className="w-[280px] shrink-0 space-y-4">
               <div className="glass-strong rounded-2xl p-5 space-y-4">
                 <div>
-                  <label className="text-[10px] text-muted-foreground/50 uppercase tracking-[0.15em] block mb-2">{t("buildingName")}</label>
+                  <label className="text-xs text-muted-foreground uppercase tracking-[0.15em] block mb-2">{t("buildingName")}</label>
                   <input
                     type="text"
                     value={buildingName}
@@ -125,7 +125,7 @@ export default function EditorPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] text-muted-foreground/50 uppercase tracking-[0.15em] block mb-2">{t("floorSize")}</label>
+                  <label className="text-xs text-muted-foreground uppercase tracking-[0.15em] block mb-2">{t("floorSize")}</label>
                   <input
                     type="number"
                     value={floorSize}
@@ -147,11 +147,11 @@ export default function EditorPage() {
                 <div className="glass-strong rounded-2xl p-5 space-y-4">
                   <div className="flex items-center justify-between">
                     <h3 className="text-sm font-medium">{t("editUnit")}</h3>
-                    <span className="text-[10px] text-muted-foreground/50 uppercase tracking-[0.15em] bg-secondary/50 rounded-full px-2.5 py-0.5">{t("floor")} {selectedFloor.floor}</span>
+                    <span className="text-xs text-muted-foreground uppercase tracking-[0.15em] bg-secondary/50 rounded-full px-2.5 py-0.5">{t("floor")} {selectedFloor.floor}</span>
                   </div>
                   <div className="h-px bg-border" />
                   <div>
-                    <label className="text-[10px] text-muted-foreground/50 uppercase tracking-[0.15em] block mb-2">{t("tenant")}</label>
+                    <label className="text-xs text-muted-foreground uppercase tracking-[0.15em] block mb-2">{t("tenant")}</label>
                     <input
                       type="text"
                       value={selectedBlock.tenantName || ""}
@@ -161,7 +161,7 @@ export default function EditorPage() {
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] text-muted-foreground/50 uppercase tracking-[0.15em] block mb-2">{t("areaSqm")}</label>
+                    <label className="text-xs text-muted-foreground uppercase tracking-[0.15em] block mb-2">{t("areaSqm")}</label>
                     <input
                       type="number"
                       value={selectedBlock.sqm}
@@ -171,7 +171,7 @@ export default function EditorPage() {
                   </div>
                   {selectedBlock.tenantName && (
                     <div>
-                      <label className="text-[10px] text-muted-foreground/50 uppercase tracking-[0.15em] block mb-2">{t("leaseEnd")}</label>
+                      <label className="text-xs text-muted-foreground uppercase tracking-[0.15em] block mb-2">{t("leaseEnd")}</label>
                       <input
                         type="month"
                         value={selectedBlock.leaseEnd ? `${selectedBlock.leaseEnd.getFullYear()}-${String(selectedBlock.leaseEnd.getMonth() + 1).padStart(2, '0')}` : ""}
@@ -225,7 +225,7 @@ export default function EditorPage() {
                             border: "border" in l ? l.border : `2px solid ${l.color}`,
                           }}
                         />
-                        <span className="text-[10px] text-muted-foreground/50">{l.label}</span>
+                        <span className="text-xs text-muted-foreground">{l.label}</span>
                       </div>
                     ))}
                   </div>
@@ -234,7 +234,7 @@ export default function EditorPage() {
                 <div className="flex flex-col gap-[3px]">
                   {[...floors].reverse().map((floor) => (
                     <div key={floor.floor} className="flex items-center gap-2.5 group">
-                      <span className="w-7 shrink-0 text-[11px] text-muted-foreground/40 text-start font-mono data-value font-medium">
+                      <span className="w-7 shrink-0 text-xs text-muted-foreground text-start font-mono data-value font-medium">
                         {floor.floor}
                       </span>
                       <div className="flex flex-1 gap-[2px]">
@@ -296,7 +296,7 @@ export default function EditorPage() {
                         onClick={() => removeFloor(floor.floor)}
                         className="opacity-0 group-hover:opacity-100 transition-all duration-200 w-6 h-6 flex items-center justify-center rounded-full hover:bg-secondary"
                       >
-                        <Trash2 className="w-3 h-3 text-muted-foreground/40" />
+                        <Trash2 className="w-3 h-3 text-muted-foreground" />
                       </button>
                     </div>
                   ))}
