@@ -1,0 +1,116 @@
+{
+  "common": {
+    "stax": "STAX",
+    "tagline": "Real Estate Intelligence",
+    "version": "v1.0",
+    "demo": "Demo · הרצליה פיתוח 2026"
+  },
+  "nav": {
+    "home": "ראשי",
+    "dashboard": "דשבורד",
+    "editor": "עורך"
+  },
+  "landing": {
+    "badge": "פלטפורמה חדשה לנדל״ן מסחרי",
+    "title1": "Stacking Plans",
+    "title2": "ברמה אחרת.",
+    "subtitle": "דשבורד חכם לניהול תיק נכסים מסחרי. תפוסה, חוזים, שטחים פנויים — הכל בתצוגה אחת ברורה ומעוצבת.",
+    "ctaDashboard": "כנס לדשבורד",
+    "ctaEditor": "נסה את העורך",
+    "buildings": "מגדלים",
+    "totalSqm": "מ״ר כולל",
+    "market": "שוק פיתוח",
+    "herzliya": "הרצליה",
+    "twoTools": "שני כלים. פלטפורמה אחת.",
+    "twoToolsSub": "הכל מה שמתווך נדל״ן מסחרי צריך.",
+    "dashboardTitle": "דשבורד נכסים",
+    "dashboardDesc": "תצוגה מלאה של תיק הנכסים",
+    "dashboardF1": "Stacking plans אינטראקטיביים עם צבעי חוזה",
+    "dashboardF2": "KPIs — תפוסה, שטח פנוי, מחירים",
+    "dashboardF3": "17 מגדלים עם נתוני שוכרים אמיתיים",
+    "editorTitle": "עורך Stacking Plan",
+    "editorDesc": "צור stacking plan חדש מאפס",
+    "editorF1": "הוספת קומות ויחידות בלחיצה",
+    "editorF2": "עריכת שוכרים, שטחים ותאריכי חוזה",
+    "editorF3": "תצוגה חיה עם צבעי lease urgency"
+  },
+  "dashboard": {
+    "title": "תיק נכסים",
+    "subtitle": "הרצליה פיתוח · {count} מגדלים",
+    "totalBuildings": "סה״כ מגדלים",
+    "totalSqm": "שטח כולל",
+    "vacantSqm": "שטח פנוי",
+    "avgOccupancy": "ממוצע תפוסה",
+    "avgPrice": "מחיר ממוצע",
+    "atRiskLeases": "חוזים בסיכון",
+    "totalVacant": "שטח פנוי כולל"
+  },
+  "filters": {
+    "area": "אזור",
+    "class": "דרגה",
+    "all": "הכל",
+    "north": "צפון",
+    "center": "מרכז",
+    "south": "דרום"
+  },
+  "card": {
+    "totalSqm": "שטח כולל",
+    "vacantSqm": "שטח פנוי",
+    "pricePerSqm": "מחיר למ״ר",
+    "typicalFloor": "קומה טיפוסית",
+    "vacantFloors": "קומות פנויות",
+    "allowance": "Allowance",
+    "occupancy": "תפוסה"
+  },
+  "modal": {
+    "totalSqm": "שטח כולל",
+    "vacantSqm": "שטח פנוי",
+    "occupancy": "תפוסה",
+    "floors": "קומות",
+    "vacantFloors": "קומות פנויות",
+    "pricePerSqm": "מחיר למ״ר",
+    "managementFee": "דמי ניהול",
+    "finishLevel": "רמת גמר"
+  },
+  "legend": {
+    "over24": "מעל 24 חודש",
+    "6to24": "6–24 חודש",
+    "under6": "פחות מ-6 חודש",
+    "vacant": "פנוי"
+  },
+  "detail": {
+    "clickForDetails": "לחץ על יחידה לפרטים",
+    "vacant": "פנוי",
+    "occupied": "מושכר",
+    "area": "שטח",
+    "tenant": "שוכר",
+    "askingPrice": "מחיר מבוקש",
+    "allowance": "Allowance",
+    "finishLevel": "רמת גמר",
+    "leaseEnd": "סיום חוזה",
+    "notes": "הערות"
+  },
+  "editor": {
+    "title": "עורך Stacking Plan",
+    "subtitle": "צור ועצב stacking plan חדש",
+    "buildingName": "שם הבניין",
+    "floorSize": "גודל קומה (מ״ר)",
+    "addFloor": "הוסף קומה",
+    "editUnit": "עריכת יחידה",
+    "floor": "קומה",
+    "tenant": "שוכר",
+    "vacantPlaceholder": "פנוי",
+    "areaSqm": "שטח (מ״ר)",
+    "leaseEnd": "סיום חוזה",
+    "split": "פצל",
+    "newBuilding": "מגדל חדש"
+  },
+  "lease": {
+    "noDate": "ללא תאריך",
+    "expired": "פג תוקף",
+    "thisMonth": "החודש",
+    "months": "{count} חודשים",
+    "years": "{years} שנים",
+    "yearsMonths": "{years}ש׳ {months}ח׳"
+  }
+}

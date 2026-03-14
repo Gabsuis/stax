@@ -1,0 +1,116 @@
+{
+  "common": {
+    "stax": "STAX",
+    "tagline": "Real Estate Intelligence",
+    "version": "v1.0",
+    "demo": "Demo · Herzliya Pituach 2026"
+  },
+  "nav": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "editor": "Editor"
+  },
+  "landing": {
+    "badge": "New platform for commercial real estate",
+    "title1": "Stacking Plans",
+    "title2": "Next level.",
+    "subtitle": "Smart dashboard for managing commercial real estate portfolios. Occupancy, leases, vacancies — all in one clear, beautiful view.",
+    "ctaDashboard": "Enter Dashboard",
+    "ctaEditor": "Try the Editor",
+    "buildings": "Buildings",
+    "totalSqm": "Total sqm",
+    "market": "Development market",
+    "herzliya": "Herzliya",
+    "twoTools": "Two tools. One platform.",
+    "twoToolsSub": "Everything a commercial real estate broker needs.",
+    "dashboardTitle": "Property Dashboard",
+    "dashboardDesc": "Full view of the property portfolio",
+    "dashboardF1": "Interactive stacking plans with lease color coding",
+    "dashboardF2": "KPIs — occupancy, vacancy, pricing",
+    "dashboardF3": "17 buildings with real tenant data",
+    "editorTitle": "Stacking Plan Editor",
+    "editorDesc": "Create a new stacking plan from scratch",
+    "editorF1": "Add floors and units with a click",
+    "editorF2": "Edit tenants, areas, and lease dates",
+    "editorF3": "Live preview with lease urgency colors"
+  },
+  "dashboard": {
+    "title": "Property Portfolio",
+    "subtitle": "Herzliya Pituach · {count} buildings",
+    "totalBuildings": "Total Buildings",
+    "totalSqm": "Total Area",
+    "vacantSqm": "Vacant Area",
+    "avgOccupancy": "Avg Occupancy",
+    "avgPrice": "Avg Price",
+    "atRiskLeases": "At-Risk Leases",
+    "totalVacant": "Total Vacant"
+  },
+  "filters": {
+    "area": "Area",
+    "class": "Class",
+    "all": "All",
+    "north": "North",
+    "center": "Center",
+    "south": "South"
+  },
+  "card": {
+    "totalSqm": "Total Area",
+    "vacantSqm": "Vacant",
+    "pricePerSqm": "Price/sqm",
+    "typicalFloor": "Typical Floor",
+    "vacantFloors": "Vacant Floors",
+    "allowance": "Allowance",
+    "occupancy": "Occupancy"
+  },
+  "modal": {
+    "totalSqm": "Total Area",
+    "vacantSqm": "Vacant Area",
+    "occupancy": "Occupancy",
+    "floors": "Floors",
+    "vacantFloors": "Vacant Floors",
+    "pricePerSqm": "Price/sqm",
+    "managementFee": "Mgmt Fee",
+    "finishLevel": "Finish Level"
+  },
+  "legend": {
+    "over24": "Over 24 months",
+    "6to24": "6–24 months",
+    "under6": "Under 6 months",
+    "vacant": "Vacant"
+  },
+  "detail": {
+    "clickForDetails": "Click a unit for details",
+    "vacant": "Vacant",
+    "occupied": "Occupied",
+    "area": "Area",
+    "tenant": "Tenant",
+    "askingPrice": "Asking Price",
+    "allowance": "Allowance",
+    "finishLevel": "Finish Level",
+    "leaseEnd": "Lease End",
+    "notes": "Notes"
+  },
+  "editor": {
+    "title": "Stacking Plan Editor",
+    "subtitle": "Create and design a new stacking plan",
+    "buildingName": "Building Name",
+    "floorSize": "Floor Size (sqm)",
+    "addFloor": "Add Floor",
+    "editUnit": "Edit Unit",
+    "floor": "Floor",
+    "tenant": "Tenant",
+    "vacantPlaceholder": "Vacant",
+    "areaSqm": "Area (sqm)",
+    "leaseEnd": "Lease End",
+    "split": "Split",
+    "newBuilding": "New Building"
+  },
+  "lease": {
+    "noDate": "No date",
+    "expired": "Expired",
+    "thisMonth": "This month",
+    "months": "{count} months",
+    "years": "{years} years",
+    "yearsMonths": "{years}y {months}m"
+  }
+}
