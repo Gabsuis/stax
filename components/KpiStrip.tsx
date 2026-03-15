@@ -22,7 +22,7 @@ export default function KpiStrip({ building }: Props) {
     { label: t("vacantFloors"), value: `${vacantFloors}`, color: vacantFloors > 0 ? "text-lease-red" : "" },
     { label: t("pricePerSqm"), value: formatPrice(building.askingPrice, locale), color: "" },
     { label: t("managementFee"), value: building.managementFee ? formatPrice(building.managementFee, locale) : "—", color: "" },
-    { label: t("finishLevel"), value: building.finish || "—", color: "text-muted-foreground" },
+    { label: t("finishLevel"), value: building.finish || "—", color: "" },
   ]
 
   return (
@@ -31,12 +31,12 @@ export default function KpiStrip({ building }: Props) {
         {cells.map((cell, i) => (
           <div
             key={cell.label}
-            className={`py-3.5 px-3 text-center ${i > 0 ? "border-s border-border" : ""}`}
+            className={`py-3 px-2.5 text-center ${i > 0 ? "border-s border-border" : ""}`}
           >
-            <div className={`text-base font-semibold data-value ${cell.color}`}>
+            <div className={`text-sm font-semibold data-value ${cell.color || "text-foreground"}`}>
               {cell.value}
             </div>
-            <div className="text-xs text-muted-foreground mt-1 uppercase tracking-[0.1em]">{cell.label}</div>
+            <div className="text-[10px] text-foreground/60 mt-1 uppercase tracking-[0.1em]">{cell.label}</div>
           </div>
         ))}
       </div>

@@ -30,7 +30,7 @@ export default function StackingPlan({ building, selectedBlockId, onBlockSelect 
     { color: "#10b981", label: t("over24") },
     { color: "#f59e0b", label: t("6to24") },
     { color: "#f43f5e", label: t("under6") },
-    { color: "transparent", border: "1px dashed rgba(255,255,255,0.2)", label: t("vacant") },
+    { color: "transparent", border: "1px dashed rgba(255,255,255,0.3)", label: t("vacant"), bright: true },
   ]
 
   return (
@@ -46,7 +46,7 @@ export default function StackingPlan({ building, selectedBlockId, onBlockSelect 
                 border: "border" in l ? l.border : `2px solid ${l.color}`,
               }}
             />
-            <span className="text-xs text-muted-foreground">{l.label}</span>
+            <span className={`text-xs ${"bright" in l && l.bright ? "text-foreground font-medium" : "text-foreground/70"}`}>{l.label}</span>
           </div>
         ))}
       </div>

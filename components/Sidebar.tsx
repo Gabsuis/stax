@@ -4,8 +4,10 @@ import { useTranslations, useLocale } from "next-intl"
 import { Link, usePathname } from "@/i18n/navigation"
 import { Building } from "@/types"
 import { formatSqm } from "@/lib/utils"
-import { LayoutDashboard, PenTool, Home } from "lucide-react"
-import LanguageSwitcher from "./LanguageSwitcher"
+import { PenTool, Home, Building2, Sparkles, Database } from "lucide-react"
+import Image from "next/image"
+
+
 
 interface Props {
   buildings: Building[]
@@ -22,8 +24,10 @@ export default function Sidebar({ buildings }: Props) {
 
   const nav = [
     { href: "/" as const, label: t("nav.home"), icon: Home },
-    { href: "/dashboard" as const, label: t("nav.dashboard"), icon: LayoutDashboard },
+    { href: "/buildings" as const, label: t("nav.buildings"), icon: Building2 },
     { href: "/editor" as const, label: t("nav.editor"), icon: PenTool },
+    { href: "/import" as const, label: t("nav.import"), icon: Database },
+    { href: "/dashboard" as const, label: t("nav.dashboard"), icon: Sparkles, special: true },
   ]
 
   return (
@@ -32,9 +36,7 @@ export default function Sidebar({ buildings }: Props) {
       <div className="px-5 pt-7 pb-6">
         <Link href="/" className="block group">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
-              <span className="font-display text-base text-primary font-normal italic">S</span>
-            </div>
+            <Image src="/logo.png" alt="STAX" width={28} height={28} className="invert" />
             <div>
               <h1 className="text-lg font-semibold tracking-tight">{t("common.stax")}</h1>
               <p className="text-xs text-muted-foreground tracking-[0.15em] uppercase">{t("common.tagline")}</p>
@@ -47,6 +49,36 @@ export default function Sidebar({ buildings }: Props) {
       <nav className="flex-1 px-3 space-y-0.5">
         {nav.map((item) => {
           const isActive = pathname === item.href
+          const isSpecial = "special" in item && item.special
+
+          if (isSpecial) {
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-300 overflow-hidden ${
+                  isActive
+                    ? "font-medium"
+                    : "hover:bg-amber-500/5"
+                }`}
+              >
+                {/* Shiny background glow when active */}
+                {isActive && (
+                  <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-amber-500/15 via-yellow-400/10 to-amber-500/15" />
+                )}
+                {/* Shimmer animation */}
+                <div className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-r from-transparent via-amber-400/8 to-transparent animate-shimmer" />
+                <item.icon
+                  className={`w-4 h-4 relative z-10 ${isActive ? "text-amber-400" : "text-amber-500/60 group-hover:text-amber-400"}`}
+                  strokeWidth={isActive ? 2 : 1.5}
+                />
+                <span className={`relative z-10 bg-gradient-to-r from-amber-300 to-yellow-400 bg-clip-text text-transparent font-semibold ${!isActive ? "opacity-70 group-hover:opacity-100" : ""} transition-opacity`}>
+                  {item.label}
+                </span>
+              </Link>
+            )
+          }
+
           return (
             <Link
               key={item.href}
@@ -78,9 +110,8 @@ export default function Sidebar({ buildings }: Props) {
             {avgOcc}%
           </div>
         </div>
-        <div className="px-1 pt-1">
-          <LanguageSwitcher />
-        </div>
+
+
       </div>
     </aside>
   )

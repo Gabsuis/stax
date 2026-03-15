@@ -9,6 +9,7 @@ import { getLeaseColor, getLeaseLabelParts } from "@/lib/leaseColors"
 import { formatSqm } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { Plus, Trash2 } from "lucide-react"
+import LanguageSwitcher from "@/components/LanguageSwitcher"
 
 function generateId() {
   return Math.random().toString(36).slice(2, 9)
@@ -106,9 +107,12 @@ export default function EditorPage() {
       <main className="flex-1 overflow-y-auto">
         <div className="p-8">
           {/* Header */}
-          <div className="mb-7">
-            <h1 className="text-3xl font-display tracking-tight">{t("title")}</h1>
-            <p className="text-sm text-muted-foreground mt-1.5">{t("subtitle")}</p>
+          <div className="flex items-center justify-between mb-7">
+            <div>
+              <h1 className="text-3xl font-display tracking-tight">{t("title")}</h1>
+              <p className="text-sm text-muted-foreground mt-1.5">{t("subtitle")}</p>
+            </div>
+            <LanguageSwitcher />
           </div>
 
           <div className="flex gap-6">

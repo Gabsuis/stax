@@ -12,7 +12,7 @@ interface Props {
 export default function FloorRow({ floor, selectedBlockId, onBlockSelect }: Props) {
   return (
     <div className="flex items-center gap-2.5 group hover:bg-white/[0.015] rounded-lg px-2 py-[2px] transition-colors duration-200">
-      <span className="w-7 shrink-0 text-xs text-muted-foreground text-left font-mono data-value font-medium">
+      <span className="w-7 shrink-0 text-xs text-foreground/70 text-left font-mono data-value font-medium">
         {floor.floor}
       </span>
       <div className="flex flex-1 gap-[2px]">

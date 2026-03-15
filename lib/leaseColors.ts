@@ -5,8 +5,8 @@ export type LeaseUrgency = "safe" | "watch" | "urgent" | "unknown"
 export function getLeaseUrgency(leaseEnd: Date | null): LeaseUrgency {
   if (!leaseEnd) return "unknown"
   const months = differenceInMonths(leaseEnd, new Date())
-  if (months < 6) return "urgent"
-  if (months < 24) return "watch"
+  if (months < 12) return "urgent"
+  if (months < 36) return "watch"
   return "safe"
 }
 

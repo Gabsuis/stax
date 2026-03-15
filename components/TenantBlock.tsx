@@ -40,11 +40,11 @@ export default function TenantBlock({ block, floorTotalSqm, isSelected, onSelect
           borderRadius: 8,
           ...(isVacant
             ? {
-                background: "rgba(255,255,255,0.02)",
-                border: "1.5px dashed rgba(255,255,255,0.1)",
+                background: "rgba(255,255,255,0.06)",
+                border: "1.5px dashed rgba(255,255,255,0.2)",
               }
             : {
-                background: `linear-gradient(135deg, ${color}18, ${color}0a)`,
+                background: `linear-gradient(135deg, ${color}40, ${color}25)`,
                 borderInlineStart: `3px solid ${color}`,
               }),
           ...(isSelected
@@ -62,7 +62,7 @@ export default function TenantBlock({ block, floorTotalSqm, isSelected, onSelect
               style={{
                 fontSize: 12,
                 fontWeight: 500,
-                color: isVacant ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.75)",
+                color: isVacant ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.95)",
               }}
             >
               {isVacant ? t("vacant") : block.tenantName}
@@ -72,7 +72,7 @@ export default function TenantBlock({ block, floorTotalSqm, isSelected, onSelect
                 className="truncate leading-tight data-value"
                 style={{
                   fontSize: 10,
-                  color: "rgba(255,255,255,0.3)",
+                  color: "rgba(255,255,255,0.7)",
                 }}
               >
                 {formatSqm(block.sqm, locale)}
@@ -83,7 +83,7 @@ export default function TenantBlock({ block, floorTotalSqm, isSelected, onSelect
       </TooltipTrigger>
       <TooltipContent side="top" className="glass-strong text-sm rounded-lg">
         <p className="font-medium">{block.tenantName || t("vacant")}</p>
-        <p className="text-muted-foreground text-xs">{formatSqm(block.sqm, locale)} · {leaseLabel}</p>
+        <p className="text-foreground/60 text-xs">{formatSqm(block.sqm, locale)} · {leaseLabel}</p>
       </TooltipContent>
     </Tooltip>
   )

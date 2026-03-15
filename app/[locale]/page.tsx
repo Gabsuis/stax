@@ -1,17 +1,48 @@
 "use client"
 
 import { useTranslations } from "next-intl"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import { Link } from "@/i18n/navigation"
 import { buildings } from "@/data/buildings"
 import { getLeaseColor } from "@/lib/leaseColors"
 import { ArrowLeft, ArrowRight } from "lucide-react"
 import LanguageSwitcher from "@/components/LanguageSwitcher"
+import { Button } from "@/components/ui/button"
 import { useLocale } from "next-intl"
+import { useState, useEffect } from "react"
+import Image from "next/image"
 
+/* ── Typewriter hook ── */
+function useTypewriter(text: string, speed = 70, delay = 800) {
+  const [displayed, setDisplayed] = useState("")
+  const [done, setDone] = useState(false)
+
+  useEffect(() => {
+    let i = 0
+    const timeout = setTimeout(() => {
+      const interval = setInterval(() => {
+        i++
+        setDisplayed(text.slice(0, i))
+        if (i >= text.length) {
+          clearInterval(interval)
+          setDone(true)
+        }
+      }, speed)
+      return () => clearInterval(interval)
+    }, delay)
+    return () => clearTimeout(timeout)
+  }, [text, speed, delay])
+
+  return { displayed, done }
+}
+
+/* ── Hero stacking plan visualization ── */
 function HeroStack() {
   const building = buildings[0]
   const reversedFloors = [...building.floors].reverse()
+
+  // Flatten all blocks to assign a global stagger index
+  let blockIndex = 0
 
   return (
     <div className="relative">
@@ -19,51 +50,74 @@ function HeroStack() {
       <div className="absolute -inset-12 blur-[80px] opacity-20"
         style={{ background: "radial-gradient(ellipse at 50% 50%, rgba(16,185,129,0.3), rgba(245,158,11,0.15) 40%, transparent 70%)" }}
       />
-      <div className="relative flex flex-col gap-[2px] w-full">
-        {reversedFloors.map((floor, i) => (
-          <motion.div
-            key={floor.floor}
-            initial={{ opacity: 0, x: -30, scale: 0.97 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
-            transition={{ delay: 0.5 + i * 0.035, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            className="flex gap-[2px]"
-          >
-            <span className="w-6 shrink-0 text-xs text-muted-foreground font-mono data-value flex items-center justify-end pe-2">
-              {floor.floor}
-            </span>
-            {floor.blocks.map((block) => {
-              const pct = (block.sqm / floor.totalSqm) * 100
-              const isVacant = block.status === "vacant"
-              const color = getLeaseColor(block.leaseEnd)
 
-              return (
-                <motion.div
-                  key={block.id}
-                  className="h-[28px] rounded-[4px] flex items-center"
-                  whileHover={{ scale: 1.02 }}
-                  transition={{ duration: 0.15 }}
-                  style={{
-                    width: `${pct}%`,
-                    minWidth: "6px",
-                    ...(isVacant
-                      ? {
-                          background: "rgba(255,255,255,0.02)",
-                          border: "1px dashed rgba(255,255,255,0.08)",
-                        }
-                      : {
-                          background: `linear-gradient(135deg, ${color}15, ${color}08)`,
-                          borderInlineStart: `2px solid ${color}`,
-                        }),
-                  }}
-                >
-                  {pct > 25 && !isVacant && (
-                    <span className="text-xs text-white/30 truncate px-2 font-medium">{block.tenantName}</span>
-                  )}
-                </motion.div>
-              )
-            })}
-          </motion.div>
-        ))}
+      {/* Flash/pop on load */}
+      <motion.div
+        className="absolute -inset-6 rounded-2xl"
+        initial={{ opacity: 0.7 }}
+        animate={{ opacity: 0 }}
+        transition={{ duration: 1.2, delay: 0.4, ease: "easeOut" }}
+        style={{ background: "radial-gradient(ellipse at 50% 40%, rgba(255,255,255,0.25), transparent 70%)" }}
+      />
+
+      <div className="relative flex flex-col gap-[2px] w-full">
+        {reversedFloors.map((floor) => {
+          // Floor label gets its own stagger slot
+          const floorDelay = 0.5 + blockIndex * 0.04
+          blockIndex++
+
+          return (
+            <div key={floor.floor} className="flex gap-[2px]">
+              <motion.span
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: floorDelay, duration: 0.3 }}
+                className="w-6 shrink-0 text-xs text-muted-foreground font-mono data-value flex items-center justify-end pe-2"
+              >
+                {floor.floor}
+              </motion.span>
+              {floor.blocks.map((block) => {
+                const pct = (block.sqm / floor.totalSqm) * 100
+                const isVacant = block.status === "vacant"
+                const color = getLeaseColor(block.leaseEnd)
+                const delay = 0.5 + blockIndex * 0.04
+                blockIndex++
+
+                return (
+                  <motion.div
+                    key={block.id}
+                    className="h-[28px] rounded-[4px] flex items-center"
+                    initial={{ opacity: 0, scale: 0.3 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{
+                      delay,
+                      duration: 0.35,
+                      ease: [0.34, 1.56, 0.64, 1],
+                    }}
+                    whileHover={{ scale: 1.02 }}
+                    style={{
+                      width: `${pct}%`,
+                      minWidth: "6px",
+                      ...(isVacant
+                        ? {
+                            background: "rgba(255,255,255,0.04)",
+                            border: "1px dashed rgba(255,255,255,0.15)",
+                          }
+                        : {
+                            background: `linear-gradient(135deg, ${color}20, ${color}0c)`,
+                            borderInlineStart: `2px solid ${color}`,
+                          }),
+                    }}
+                  >
+                    {pct > 25 && !isVacant && (
+                      <span className="text-xs text-white/60 truncate px-2 font-medium">{block.tenantName}</span>
+                    )}
+                  </motion.div>
+                )
+              })}
+            </div>
+          )
+        })}
       </div>
     </div>
   )
@@ -74,8 +128,11 @@ export default function LandingPage() {
   const locale = useLocale()
   const isRtl = locale === "he"
   const Arrow = isRtl ? ArrowLeft : ArrowRight
-  const totalSqm = buildings.reduce((s, b) => s + b.totalSqm, 0)
-  const totalBuildings = buildings.length
+  // Product social proof stats (not market data)
+
+
+  const title2Text = t("landing.title2")
+  const { displayed: typewriterText, done: typewriterDone } = useTypewriter(title2Text, 70, 900)
 
   return (
     <div className="min-h-screen bg-background overflow-hidden relative">
@@ -94,26 +151,18 @@ export default function LandingPage() {
       >
         <div className="max-w-7xl mx-auto px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center">
-              <span className="font-display text-sm text-primary italic">S</span>
-            </div>
+            <Image src="/logo.png" alt="STAX" width={24} height={24} className="invert" />
             <span className="text-sm font-medium tracking-tight">{t("common.stax")}</span>
             <span className="text-xs text-muted-foreground uppercase tracking-[0.2em]">{t("common.version")}</span>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             <LanguageSwitcher />
-            <Link
-              href="/editor"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors px-4 py-2"
-            >
-              {t("nav.editor")}
-            </Link>
-            <Link
-              href="/dashboard"
-              className="text-sm bg-primary text-primary-foreground px-5 py-2 rounded-full font-medium hover:opacity-90 transition-opacity"
-            >
-              {t("nav.dashboard")}
-            </Link>
+            <Button variant="ghost" size="sm">
+              {t("nav.login")}
+            </Button>
+            <Button variant="outline" size="sm">
+              {t("nav.signUp")}
+            </Button>
           </div>
         </div>
       </motion.nav>
@@ -144,7 +193,14 @@ export default function LandingPage() {
                   {t("landing.title1")}
                 </span>
                 <span className="block text-5xl md:text-6xl lg:text-7xl font-display italic tracking-tight leading-[1.05] text-muted-foreground">
-                  {t("landing.title2")}
+                  {typewriterText}
+                  {!typewriterDone && (
+                    <motion.span
+                      animate={{ opacity: [1, 0] }}
+                      transition={{ repeat: Infinity, duration: 0.6 }}
+                      className="inline-block w-[3px] h-[0.85em] bg-primary/70 align-middle ms-1 -translate-y-0.5"
+                    />
+                  )}
                 </span>
               </motion.h1>
 
@@ -182,21 +238,23 @@ export default function LandingPage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.8, delay: 0.6 }}
-                className="flex items-center gap-8 mt-14"
+                className="mt-14"
               >
-                <div>
-                  <div className="text-3xl font-display data-value">{totalBuildings}</div>
-                  <div className="text-xs text-muted-foreground uppercase tracking-[0.15em] mt-1">{t("landing.buildings")}</div>
-                </div>
-                <div className="w-px h-10 bg-border" />
-                <div>
-                  <div className="text-3xl font-display data-value">{Math.round(totalSqm / 1000)}K</div>
-                  <div className="text-xs text-muted-foreground uppercase tracking-[0.15em] mt-1">{t("landing.totalSqm")}</div>
-                </div>
-                <div className="w-px h-10 bg-border" />
-                <div>
-                  <div className="text-3xl font-display data-value">{t("landing.herzliya")}</div>
-                  <div className="text-xs text-muted-foreground uppercase tracking-[0.15em] mt-1">{t("landing.market")}</div>
+                <div className="flex items-center gap-8">
+                  <div>
+                    <div className="text-3xl font-display data-value">{t("landing.statUsers")}</div>
+                    <div className="text-xs text-muted-foreground uppercase tracking-[0.15em] mt-1">{t("landing.statUsersLabel")}</div>
+                  </div>
+                  <div className="w-px h-10 bg-border" />
+                  <div>
+                    <div className="text-3xl font-display data-value text-lease-green">{t("landing.statChurn")}</div>
+                    <div className="text-xs text-muted-foreground uppercase tracking-[0.15em] mt-1">{t("landing.statChurnLabel")}</div>
+                  </div>
+                  <div className="w-px h-10 bg-border" />
+                  <div>
+                    <div className="text-3xl font-display data-value">{t("landing.statDeals")}</div>
+                    <div className="text-xs text-muted-foreground uppercase tracking-[0.15em] mt-1">{t("landing.statDealsLabel")}</div>
+                  </div>
                 </div>
               </motion.div>
             </div>
@@ -229,8 +287,8 @@ export default function LandingPage() {
                     <span className="text-xs text-muted-foreground">{t("legend.under6")}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-[2px] border border-dashed border-white/15" />
-                    <span className="text-xs text-muted-foreground">{t("legend.vacant")}</span>
+                    <div className="w-2 h-2 rounded-[2px] border border-dashed border-white/20 bg-white/5" />
+                    <span className="text-xs text-foreground font-medium">{t("legend.vacant")}</span>
                   </div>
                 </div>
               </div>
@@ -339,7 +397,7 @@ export default function LandingPage() {
       <footer className="border-t border-border py-10 px-8">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <span className="font-display text-sm italic text-muted-foreground">S</span>
+            <Image src="/logo.png" alt="STAX" width={16} height={16} className="invert opacity-60" />
             <span className="text-xs text-muted-foreground">{t("common.stax")} · {t("common.tagline")}</span>
           </div>
           <div className="text-xs text-muted-foreground uppercase tracking-[0.15em]">{t("common.demo")}</div>

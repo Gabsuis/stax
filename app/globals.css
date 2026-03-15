@@ -192,6 +192,15 @@ body::before {
   animation: shimmer 2s ease-in-out;
 }
 
+/* Gold shimmer for AI Insights nav */
+@keyframes gold-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.animate-shimmer {
+  animation: gold-shimmer 2.5s ease-in-out infinite;
+}
+
 /* Thin scrollbar */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
