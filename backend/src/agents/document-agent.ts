@@ -1,7 +1,7 @@
 import { SequentialAgent, LlmAgent, InMemoryRunner } from '@google/adk';
 import { Type, Schema, ThinkingLevel } from '@google/genai';
 
-const FLASH = 'gemini-3.1-flash-lite-preview';
+const FLASH = 'gemini-3.1-flash-preview';
 
 // ════════════════════════════════════════════════════════════
 // STEP 0: PARSER
