@@ -120,11 +120,19 @@ app.post('/process', async (c) => {
           agentLogs.push({
             agent: author,
             timestamp: new Date().toISOString(),
-            text: eventText.slice(0, 5000),
+            text: eventText.slice(0, 10000),
           });
           // Keep the LAST output per agent (the final response)
           agentOutputs[author] = eventText;
-          console.log(`[AGENT:${author}] ${eventText.slice(0, 500)}`);
+          console.log(`[AGENT:${author}] output (${eventText.length} chars):`);
+          // Log full output for short responses, truncate for long ones
+          if (eventText.length <= 3000) {
+            console.log(eventText);
+          } else {
+            console.log(eventText.slice(0, 1500));
+            console.log(`... (${eventText.length - 3000} chars truncated) ...`);
+            console.log(eventText.slice(-1500));
+          }
         }
 
         if (author && author !== lastAuthor) {
@@ -139,6 +147,7 @@ app.post('/process', async (c) => {
           };
           const stepInfo = steps[author];
           if (stepInfo) {
+            console.log(`\n${'═'.repeat(60)}\n[STEP ${stepInfo.step}/${stepInfo.total}] ${author} starting...\n${'═'.repeat(60)}`);
             await send('progress', {
               stage: 'extracting',
               message: stepInfo.message,
