@@ -13,7 +13,7 @@ const FLASH = 'gemini-3.1-flash-lite-preview';
 const parserSchema: Schema = {
   type: Type.OBJECT,
   properties: {
-    page_count: { type: Type.INTEGER, description: 'Number of pages' },
+    page_count: { type: Type.STRING, description: 'Number of pages' },
     document_type: { type: Type.STRING, description: 'What kind of document: vacancy listing, brochure, catalog, lobby sign photo, floor plan, etc.' },
     summary: { type: Type.STRING, description: 'One paragraph summary of the entire document' },
     full_text: { type: Type.STRING, description: 'ALL text from every page. Separate pages with ---PAGE N---. Include every number, name, address, price, date, phone, email. For images: describe what you see in [IMAGE: description] tags.' },
@@ -73,7 +73,7 @@ const classifySchema: Schema = {
   properties: {
     document_type: { type: Type.STRING },
     language: { type: Type.STRING },
-    building_count: { type: Type.INTEGER },
+    building_count: { type: Type.STRING },
     is_sublease: { type: Type.BOOLEAN, description: 'true if the document mentions שכירות משנה or sublease' },
     summary: { type: Type.STRING },
   },
@@ -123,10 +123,10 @@ const buildingsSchema: Schema = {
           city_en: { type: Type.STRING, description: 'City in English' },
           neighborhood: { type: Type.STRING, description: 'Neighborhood like רמת החייל, הרצליה פיתוח, בורסה' },
           class: { type: Type.STRING },
-          year_built: { type: Type.INTEGER },
+          year_built: { type: Type.STRING, description: 'Year built as string e.g. "2015". Omit if unknown.' },
           leed_rating: { type: Type.STRING },
-          total_sqm: { type: Type.INTEGER, description: 'Total building area if mentioned (e.g. "בהיקף כולל של כ-100,000 מ"ר")' },
-          floor_count: { type: Type.INTEGER, description: 'If floor 20 is mentioned, this is at LEAST 20' },
+          total_sqm: { type: Type.STRING, description: 'Total building area if mentioned (e.g. "בהיקף כולל של כ-100,000 מ"ר")' },
+          floor_count: { type: Type.STRING, description: 'If floor 20 is mentioned, this is at LEAST 20' },
           owner_name: { type: Type.STRING, description: 'Building owner/landlord (e.g. "בעל הנכס: אשטרום", "מגדל")' },
           notes: { type: Type.STRING },
           confidence: { type: Type.NUMBER },
@@ -170,11 +170,22 @@ BEHAVIOR DEPENDS ON DOCUMENT TYPE (from classification):
 - Expect MANY buildings. Scan every page.
 - Each building may have different amounts of data.
 
-FOR EACH BUILDING extract: name, name_en, address, city, city_en, neighborhood, class, year_built, leed_rating, total_sqm, floor_count, owner_name, confidence.
+FOR EACH BUILDING you MUST extract at minimum:
+- name (REQUIRED)
+- address (REQUIRED — look for street names near the building name)
+- city (REQUIRED — parse from address. "Bursa district, Ramat Gan" → city: "רמת גן")
+- city_en (REQUIRED)
 
-City mapping: הרצליה=Herzliya, תל אביב=Tel Aviv, רמת גן=Ramat Gan, חולון=Holon, פתח תקווה=Petah Tikva, חיפה=Haifa, רעננה=Raanana, הוד השרון=Hod HaSharon, נתניה=Netanya, מודיעין=Modiin, ירושלים=Jerusalem, בני ברק=Bnei Brak, אזור=Azor, אור יהודה=Or Yehuda, יבנה=Yavne, נוף הגליל=Nof HaGalil, רחובות=Rehovot.
+Also extract if available: name_en, neighborhood, class, year_built (as string "2015", omit if not stated), leed_rating, total_sqm, floor_count, owner_name, confidence.
 
-ONLY include data explicitly in the document. Do NOT invent numbers.`,
+City mapping: הרצליה=Herzliya, תל אביב=Tel Aviv, רמת גן=Ramat Gan, חולון=Holon, פתח תקווה=Petah Tikva, חיפה=Haifa, רעננה=Raanana, הוד השרון=Hod HaSharon, נתניה=Netanya, מודיעין=Modiin, ירושלים=Jerusalem, בני ברק=Bnei Brak, אזור=Azor, אור יהודה=Or Yehuda, יבנה=Yavne, נוף הגליל=Nof HaGalil, רחובות=Rehovot, רמת החייל=Tel Aviv (neighborhood).
+
+"Bursa district" → city: "רמת גן", city_en: "Ramat Gan", neighborhood: "בורסה"
+"רמת החייל ת"א" → city: "תל אביב", city_en: "Tel Aviv", neighborhood: "רמת החייל"
+"הרצליה פיתוח" → city: "הרצליה", city_en: "Herzliya", neighborhood: "הרצליה פיתוח"
+"קריית אריה פ"ת" → city: "פתח תקווה", city_en: "Petah Tikva", neighborhood: "קריית אריה"
+
+Do NOT invent numbers. If a field has no data, OMIT it — do not use 0 or empty strings.`,
   outputSchema: buildingsSchema,
   outputKey: 'buildings_data',
   includeContents: 'default',
@@ -202,15 +213,15 @@ const floorsSchema: Schema = {
             items: {
               type: Type.OBJECT,
               properties: {
-                floor_number: { type: Type.INTEGER },
-                total_sqm: { type: Type.INTEGER },
+                floor_number: { type: Type.STRING },
+                total_sqm: { type: Type.STRING },
                 blocks: {
                   type: Type.ARRAY,
                   items: {
                     type: Type.OBJECT,
                     properties: {
                       tenant_name: { type: Type.STRING, description: 'null if vacant' },
-                      sqm: { type: Type.INTEGER },
+                      sqm: { type: Type.STRING },
                       status: { type: Type.STRING, description: 'vacant or occupied' },
                       is_sublease: { type: Type.BOOLEAN },
                       sublease_tenant: { type: Type.STRING, description: 'Original leaseholder offering the sublease' },
@@ -259,8 +270,28 @@ BEHAVIOR BY DOCUMENT TYPE:
 - If document is sublease (שכירות משנה) → is_sublease: true on ALL blocks.
 
 **If multi_building_catalog / broker_listing:**
-- Per-building floor details, possibly in tables.
-- Extract each building's floors separately.
+- MANY buildings, each with per-floor data. This is the hardest case — be thorough.
+- Go through EACH building from the buildings_data list one by one.
+- For each building, scan the parsed_content for its name, then extract the floor lines below it.
+- Hebrew floor pattern: "• קומה N: XXX מ״ר" or "קומה N: כ-XXX מ״ר" or just "N • קומה"
+- Ground floor: "קומת קרקע" = floor 0
+- Each bullet point (•) under a building usually = one available space on a floor
+- "ניתן לחלוקה" = can be divided (note in block notes)
+- "בגמר מלא" or "גמר" = as_is_new, "במעטפת" = shell_and_core, "במצב קיים" = as_is
+- If multiple spaces on the same floor (e.g. "מ״ר 120 :3 • קומה" and "מ״ר 45 :3 • קומה"), create SEPARATE blocks
+- ALL spaces listed in these catalogs are VACANT (they're marketing available spaces)
+
+EXAMPLE from a Hebrew newsletter:
+"בית ויקטוריה
+ ניתן לחלוקה-  מ״ר860 :1 • קומה
+ ניתן לחלוקה, בגמר-  מ״ר500 :2 • קומה
+ מ״ר120 :3 • קומה
+ מ״ר45 :3 • קומה"
+→ building: "בית ויקטוריה", floors: [
+  {floor_number: 1, blocks: [{sqm: 860, status: "vacant"}]},
+  {floor_number: 2, blocks: [{sqm: 500, status: "vacant", delivery_condition: "as_is_new"}]},
+  {floor_number: 3, blocks: [{sqm: 120, status: "vacant"}, {sqm: 45, status: "vacant"}]}
+]
 
 FIELDS:
 - floor_number: קומה 11 = 11, "20th Floor" = 20
@@ -386,7 +417,9 @@ CONTACTS (Israeli format):
 - Primary → contact_name/phone/email. Others → additional_contacts.
 
 AMENITIES (use ONLY these values):
-gym, lobby_lounge, restaurant, cafe, conference_center, retail, rooftop_terrace, ev_charging, shower_rooms, bike_storage, daycare, synagogue`,
+gym, lobby_lounge, restaurant, cafe, conference_center, retail, rooftop_terrace, ev_charging, shower_rooms, bike_storage, daycare, synagogue
+
+IMPORTANT: If a field has no data, OMIT it entirely. Do NOT use 0, "not specified", or empty values. Just leave the field out.`,
   outputSchema: financialsSchema,
   outputKey: 'financials_data',
   includeContents: 'default',
@@ -418,12 +451,12 @@ const finalSchema: Schema = {
           city_en: { type: Type.STRING },
           area: { type: Type.STRING },
           class: { type: Type.STRING },
-          year_built: { type: Type.INTEGER },
+          year_built: { type: Type.STRING, description: 'Year built as string e.g. "2015". Omit if unknown.' },
           leed_rating: { type: Type.STRING },
-          floor_count: { type: Type.INTEGER },
-          typical_floor_sqm: { type: Type.INTEGER },
-          total_sqm: { type: Type.INTEGER },
-          vacant_sqm: { type: Type.INTEGER },
+          floor_count: { type: Type.STRING },
+          typical_floor_sqm: { type: Type.STRING },
+          total_sqm: { type: Type.STRING },
+          vacant_sqm: { type: Type.STRING },
           occupancy_rate: { type: Type.NUMBER },
           asking_rent_sqm: { type: Type.NUMBER },
           management_fee_sqm: { type: Type.NUMBER },
@@ -452,15 +485,15 @@ const finalSchema: Schema = {
             items: {
               type: Type.OBJECT,
               properties: {
-                floor_number: { type: Type.INTEGER },
-                total_sqm: { type: Type.INTEGER },
+                floor_number: { type: Type.STRING },
+                total_sqm: { type: Type.STRING },
                 blocks: {
                   type: Type.ARRAY,
                   items: {
                     type: Type.OBJECT,
                     properties: {
                       tenant_name: { type: Type.STRING },
-                      sqm: { type: Type.INTEGER },
+                      sqm: { type: Type.STRING },
                       status: { type: Type.STRING },
                       is_sublease: { type: Type.BOOLEAN },
                       sublease_tenant: { type: Type.STRING },
@@ -488,44 +521,28 @@ const finalSchema: Schema = {
 const mergerAgent = new LlmAgent({
   name: 'merger',
   model: FLASH,
-  instruction: `Merge all extracted data into the final result. Match buildings by name.
+  instruction: `Merge extracted data by building name. Be fast.
 
 ## Classification: {classification}
-## Buildings (identity): {buildings_data}
-## Floors & blocks: {floors_data}
-## Financials & contacts: {financials_data}
+## Buildings: {buildings_data}
+## Floors: {floors_data}
+## Financials: {financials_data}
 
-MERGE RULES:
-1. Combine ALL data from all extraction steps per building name.
-2. Keep EVERY field. Never drop data.
-3. Copy building-level rent/mgmt_fee to block-level rent_per_sqm/management_fee_sqm.
-4. Calculate vacant_sqm = sum of sqm for blocks with status "vacant".
-5. Calculate occupancy_rate = (total_sqm - vacant_sqm) / total_sqm if total_sqm > 0.
-6. If floor 20 is mentioned but floor_count is missing, set floor_count to at least 20.
-7. Set _confidence: 0.8+ if most fields filled, <0.5 if sparse.
-8. document_type and language from classification. language must be "he", "en", or "mixed" (lowercase).
-
-NORMALIZE TO EXACT ENUM VALUES (critical):
-- delivery_condition must be EXACTLY one of: shell_and_core, as_is, as_is_new, as_is_high_level, turnkey, furnished, furnished_equipped, renovation_required
-  Map: "fully fitted" → turnkey, "high-end finishes" → turnkey, "מעטפת" → shell_and_core, "מרוהט" → furnished, "מרוהט ומאובזר" → furnished_equipped
-- leed_rating must be EXACTLY: platinum, gold, silver, certified, none (all LOWERCASE)
-  Map: "Platinum" → platinum, "LEED Platinum" → platinum
-- amenities must use ONLY these values: gym, lobby_lounge, restaurant, cafe, conference_center, retail, rooftop_terrace, ev_charging, shower_rooms, bike_storage, daycare, synagogue
-  Map: "fitness center" → gym, "lobby" → lobby_lounge, "auditorium" → conference_center, "24/7 security" → SKIP (not an amenity)
-- status must be: vacant, occupied
-- tenant_name: use null (not the string "null") for vacant blocks
-- area must be: north, center, south (or omit if unknown)
-- Dates ISO format: YYYY-MM-DD
-
-CLEANUP:
-- If total_sqm was not stated for the whole building, OMIT it. Do not use the unit sqm as building sqm.
-- Remove duplicate floor entries (e.g. if floor 20 appears twice, keep only one with the most data).
-- year_built: keep if the model knows it from world knowledge. It's OK to use known facts about famous buildings.`,
+For each building, combine all fields from all steps. Keep everything. Then:
+- delivery_condition: "fully fitted"→turnkey, "מעטפת"→shell_and_core, "מרוהט"→furnished, "גמר"→as_is_new, "מצב קיים"→as_is
+- leed_rating: lowercase (platinum, gold, silver, certified, none)
+- amenities: gym, lobby_lounge, restaurant, cafe, conference_center, retail, rooftop_terrace, ev_charging, shower_rooms, bike_storage
+- language: lowercase (he, en, mixed)
+- vacant blocks: tenant_name = null (not string "null")
+- vacant_sqm = sum of vacant block sqm
+- Copy building rent to block rent_per_sqm if block has none
+- Deduplicate floors (keep the one with more data)
+- _confidence: 0.8+ if rich data, <0.5 if sparse`,
   outputSchema: finalSchema,
   outputKey: 'extraction_result',
   includeContents: 'default',
   generateContentConfig: {
-    thinkingConfig: { thinkingLevel: ThinkingLevel.MEDIUM },
+    thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
   },
 });
 
