@@ -28,6 +28,8 @@ type DuplicateAction = "insert" | "replace" | "merge" | "skip"
 interface ProcessingState {
   stage: ProcessingStage
   message: string
+  step?: number
+  total?: number
 }
 
 export default function ImportPage() {
@@ -132,7 +134,7 @@ export default function ImportPage() {
             try {
               const data = JSON.parse(line.slice(6))
               if (eventType === "progress") {
-                setProcessing({ stage: data.stage as ProcessingStage, message: data.message })
+                setProcessing({ stage: data.stage as ProcessingStage, message: data.message, step: data.step, total: data.total })
               } else if (eventType === "warning") {
                 setWarningMessage(data.message)
               } else if (eventType === "result") {
@@ -318,17 +320,39 @@ export default function ImportPage() {
                         </button>
                       </div>
 
-                      {/* Progress */}
+                      {/* Progress with step bar */}
                       <AnimatePresence>
                         {isProcessing && (
                           <motion.div
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: "auto" }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/5 border border-primary/10"
+                            className="space-y-3 px-4 py-4 rounded-xl bg-primary/5 border border-primary/10"
                           >
-                            <Loader2 className="w-4 h-4 text-primary animate-spin shrink-0" />
-                            <span className="text-sm text-primary">{processing.message}</span>
+                            <div className="flex items-center gap-3">
+                              <Loader2 className="w-4 h-4 text-primary animate-spin shrink-0" />
+                              <span className="text-sm text-primary flex-1">{processing.message}</span>
+                              {processing.step && processing.total && (
+                                <span className="text-xs text-primary/60 font-mono">{processing.step}/{processing.total}</span>
+                              )}
+                            </div>
+                            {processing.step && processing.total && (
+                              <div className="flex gap-1">
+                                {Array.from({ length: processing.total }, (_, i) => (
+                                  <div
+                                    key={i}
+                                    className={cn(
+                                      "h-1.5 flex-1 rounded-full transition-all duration-500",
+                                      i < processing.step!
+                                        ? "bg-primary"
+                                        : i === processing.step!
+                                        ? "bg-primary/40 animate-pulse"
+                                        : "bg-primary/10"
+                                    )}
+                                  />
+                                ))}
+                              </div>
+                            )}
                           </motion.div>
                         )}
                       </AnimatePresence>
@@ -484,55 +508,53 @@ export default function ImportPage() {
                       ))}
                     </div>
 
-                    {/* Duplicate review panel */}
+                    {/* Duplicate review */}
                     {duplicates.length > 0 && !autoSaved && !imported && (
                       <div className="space-y-3">
                         <div className="flex items-center gap-2 text-amber-400 text-sm font-medium">
                           <AlertCircle className="w-4 h-4" />
-                          {duplicates.length} potential duplicate(s) found — review before importing
+                          {duplicates.length} existing building(s) found — choose how to handle
                         </div>
                         {duplicates.map((dup) => {
                           const match = dup.matches[0]
                           if (!match) return null
                           const extracted = result.buildings[dup.extracted_index]
                           const decision = duplicateDecisions[dup.extracted_index]
+
+                          // Check if new data actually has anything useful to compare
+                          const hasNewData = extracted && (
+                            extracted.address || extracted.asking_rent_sqm ||
+                            extracted.floors?.length || extracted.vacant_sqm
+                          )
+
                           return (
                             <div key={dup.extracted_index} className="glass rounded-xl p-4 space-y-3">
-                              <div className="text-sm font-medium">
-                                &ldquo;{dup.building_name}&rdquo; matches existing &ldquo;{match.name}&rdquo;
-                                <span className="text-xs text-muted-foreground ms-2">
-                                  ({Math.round(match.similarity * 100)}% · {match.match_reason})
-                                </span>
+                              <div className="flex items-center justify-between">
+                                <div className="text-sm font-medium">
+                                  &ldquo;{dup.building_name}&rdquo; = &ldquo;{match.name}&rdquo;
+                                  <span className="text-xs text-muted-foreground ms-2">
+                                    {Math.round(match.similarity * 100)}% match
+                                  </span>
+                                </div>
                               </div>
-                              {/* Side by side comparison */}
-                              <div className="grid grid-cols-3 gap-2 text-xs">
-                                <div className="text-muted-foreground font-medium">Field</div>
-                                <div className="text-muted-foreground font-medium">Existing</div>
-                                <div className="text-muted-foreground font-medium">New</div>
 
-                                <div>Address</div>
-                                <div>{match.address}</div>
-                                <div>{extracted?.address || "—"}</div>
+                              {hasNewData ? (
+                                <div className="grid grid-cols-3 gap-2 text-xs">
+                                  <div className="text-muted-foreground font-medium">Field</div>
+                                  <div className="text-muted-foreground font-medium">Existing</div>
+                                  <div className="text-muted-foreground font-medium">New</div>
+                                  {/* Only show rows where new data exists */}
+                                  {extracted?.address && (<><div>Address</div><div>{match.address || "—"}</div><div className="text-lease-green">{extracted.address}</div></>)}
+                                  {extracted?.total_sqm && (<><div>Total sqm</div><div>{match.total_sqm?.toLocaleString() || "—"}</div><div className="text-lease-green">{extracted.total_sqm.toLocaleString()}</div></>)}
+                                  {extracted?.asking_rent_sqm && (<><div>Rent/sqm</div><div>{match.asking_rent_sqm ? `₪${match.asking_rent_sqm}` : "—"}</div><div className="text-lease-green">₪{extracted.asking_rent_sqm}</div></>)}
+                                  {extracted?.floors?.length ? (<><div>Floors</div><div>{match.floor_count || "—"}</div><div className="text-lease-green">{extracted.floors.length} floor(s)</div></>) : null}
+                                </div>
+                              ) : (
+                                <p className="text-xs text-muted-foreground">No new data to compare — the import only found the name. Recommend: <span className="text-amber-400">Skip</span></p>
+                              )}
 
-                                <div>Total sqm</div>
-                                <div>{match.total_sqm?.toLocaleString()}</div>
-                                <div>{extracted?.total_sqm?.toLocaleString() || "—"}</div>
-
-                                <div>Rent/sqm</div>
-                                <div>{match.asking_rent_sqm ? `₪${match.asking_rent_sqm}` : "—"}</div>
-                                <div>{extracted?.asking_rent_sqm ? `₪${extracted.asking_rent_sqm}` : "—"}</div>
-
-                                <div>Floors</div>
-                                <div>{match.floor_count}</div>
-                                <div>{extracted?.floor_count || extracted?.floors?.length || "—"}</div>
-
-                                <div>Vacant</div>
-                                <div>{match.vacant_sqm?.toLocaleString()} sqm</div>
-                                <div>{extracted?.vacant_sqm?.toLocaleString() || "—"} sqm</div>
-                              </div>
-                              {/* Action buttons */}
                               <div className="flex gap-2">
-                                {(["replace", "merge", "skip"] as const).map((action) => (
+                                {(["merge", "replace", "skip"] as const).map((action) => (
                                   <button
                                     key={action}
                                     onClick={() => setDuplicateDecisions((prev) => ({
@@ -542,13 +564,13 @@ export default function ImportPage() {
                                     className={cn(
                                       "px-3 py-1.5 rounded-lg text-xs font-medium transition-all",
                                       decision?.action === action
-                                        ? action === "replace" ? "bg-lease-red/20 text-lease-red border border-lease-red/30"
-                                          : action === "merge" ? "bg-lease-green/20 text-lease-green border border-lease-green/30"
+                                        ? action === "merge" ? "bg-lease-green/20 text-lease-green border border-lease-green/30"
+                                          : action === "replace" ? "bg-lease-red/20 text-lease-red border border-lease-red/30"
                                           : "bg-muted/30 text-muted-foreground border border-border"
                                         : "glass text-muted-foreground hover:text-foreground"
                                     )}
                                   >
-                                    {action === "replace" ? "Replace" : action === "merge" ? "Merge" : "Skip"}
+                                    {action === "merge" ? "Merge new data" : action === "replace" ? "Replace" : "Skip"}
                                   </button>
                                 ))}
                                 <button
@@ -572,30 +594,40 @@ export default function ImportPage() {
                       </div>
                     )}
 
-                    {/* Import button */}
-                    {autoSaved ? (
-                      <div className="flex items-center gap-2 justify-center py-3 text-sm text-lease-green">
-                        <Check className="w-4 h-4" />
-                        {t("imported")}
-                      </div>
+                    {/* Success / Import button */}
+                    {autoSaved || imported ? (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="flex flex-col items-center gap-3 py-6"
+                      >
+                        <div className="w-12 h-12 rounded-full bg-lease-green/20 flex items-center justify-center">
+                          <Check className="w-6 h-6 text-lease-green" />
+                        </div>
+                        <p className="text-sm text-lease-green font-medium">
+                          {autoSaved
+                            ? `${result.buildings.length} building(s) imported successfully`
+                            : t("imported")}
+                        </p>
+                        <a href={`/${locale}/buildings`} className="text-xs text-primary hover:underline">
+                          View in Buildings →
+                        </a>
+                      </motion.div>
                     ) : (
                       <Button
                         onClick={handleSaveWithDecisions}
-                        disabled={imported || saving || (duplicates.length > 0 && Object.keys(duplicateDecisions).length < duplicates.length)}
+                        disabled={saving || (duplicates.length > 0 && Object.keys(duplicateDecisions).length < duplicates.length)}
                         className="w-full"
                       >
-                        {imported ? (
-                          <>
-                            <Check className="w-4 h-4" />
-                            {t("imported")}
-                          </>
-                        ) : saving ? (
+                        {saving ? (
                           <>
                             <Loader2 className="w-4 h-4 animate-spin" />
                             Saving...
                           </>
                         ) : duplicates.length > 0 ? (
-                          `Import with decisions (${Object.keys(duplicateDecisions).length}/${duplicates.length} reviewed)`
+                          Object.keys(duplicateDecisions).length < duplicates.length
+                            ? `Review all duplicates (${Object.keys(duplicateDecisions).length}/${duplicates.length})`
+                            : "Save with selected actions"
                         ) : (
                           t("importBtn")
                         )}
