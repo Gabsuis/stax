@@ -55,23 +55,15 @@ export default function Sidebar({ buildings }: Props) {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-300 overflow-hidden ${
-                  isActive
-                    ? "font-medium"
-                    : "hover:bg-amber-500/5"
+                className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-full text-sm transition-all duration-300 overflow-hidden bg-foreground ${
+                  isActive ? "font-medium" : "hover:opacity-90"
                 }`}
               >
-                {/* Shiny background glow when active */}
-                {isActive && (
-                  <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-amber-500/15 via-yellow-400/10 to-amber-500/15" />
-                )}
-                {/* Shimmer animation */}
-                <div className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-r from-transparent via-amber-400/8 to-transparent animate-shimmer" />
                 <item.icon
-                  className={`w-4 h-4 relative z-10 ${isActive ? "text-amber-400" : "text-amber-500/60 group-hover:text-amber-400"}`}
+                  className="w-4 h-4 relative z-10 text-amber-400"
                   strokeWidth={isActive ? 2 : 1.5}
                 />
-                <span className={`relative z-10 bg-gradient-to-r from-amber-300 to-yellow-400 bg-clip-text text-transparent font-semibold ${!isActive ? "opacity-70 group-hover:opacity-100" : ""} transition-opacity`}>
+                <span className="relative z-10 bg-gradient-to-r from-amber-300 to-yellow-400 bg-clip-text text-transparent font-semibold">
                   {item.label}
                 </span>
               </Link>

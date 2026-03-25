@@ -486,7 +486,7 @@ export default function ImportPage() {
 
                         {/* Visual stacking plan */}
                         <div className="flex flex-col gap-[3px]">
-                          {[...lobbySign.floors].reverse().map((floor) => (
+                          {lobbySign.floors.map((floor) => (
                             <div key={floor.floor_number} className="flex items-center gap-2.5 px-2 py-[2px]">
                               <span className="w-7 shrink-0 text-xs text-foreground/70 text-left font-mono font-medium">
                                 {floor.floor_number}

@@ -53,29 +53,44 @@ export async function extractLobbySign(base64: string, mimeType: string): Promis
     contents: [{
       role: 'user',
       parts: [
-        { text: `Read this Israeli building lobby directory sign. Return JSON:
+        { text: `You are reading a photo of an Israeli building lobby directory sign. Your job is to list EVERY tenant on EVERY floor. Be meticulous — do not miss any company name or logo.
+
+INSTRUCTIONS:
+1. Start at the TOP of the sign and work DOWN
+2. The building name is at the very top (e.g. "גלגלי הפלדה 11")
+3. Each horizontal row = one floor. The big number on the right/left = floor number
+4. On each floor row, read EVERY company name and logo from LEFT to RIGHT
+5. Include Hebrew names, English names, and mixed names exactly as written
+6. If you see "משרד להשכרה" or "להשכרה" with a phone number, that floor has a vacancy — set has_vacancy: true AND include "להשכרה [phone]" as a tenant entry
+7. "קומת קרקע" = floor "0" (ground floor)
+8. If the sign says "כניסה א" or "כניסה ב", note it — both entrances are the SAME building
+9. Order floors from HIGHEST number to LOWEST in the output (top of building first)
+
+Return JSON:
 {
   "building_name": "Hebrew name from top of sign",
   "building_name_en": "English name if visible",
-  "address": "street address if visible",
-  "city": "city in Hebrew",
+  "address": "street address if visible on sign",
+  "city": "city in Hebrew (guess from building name if needed)",
   "city_en": "city in English",
-  "entrance": "כניסה א/ב if visible",
-  "floor_count": number,
-  "floors": [{ "floor_number": "4", "tenants": ["Company A", "Company B"], "has_vacancy": false }]
+  "entrance": "כניסה א/ב if visible, empty string if not",
+  "floor_count": total number of floors on the sign,
+  "floors": [
+    { "floor_number": "4", "tenants": ["Company A", "Company B"], "has_vacancy": false },
+    { "floor_number": "3", "tenants": ["Company C"], "has_vacancy": false }
+  ]
 }
 
-Rules:
-- Each row = one floor. Big number = floor number.
-- Each company name/logo = one tenant.
-- "משרד להשכרה" or "להשכרה" = has_vacancy: true
-- "קומת קרקע" = floor "0"
-- Multiple entrances (כניסה א/ב) = SAME building
-- Return ONLY valid JSON` },
+CRITICAL: Do NOT skip any tenant. Read every logo, every text, every name on each floor row. If unsure about a name, include your best reading. Better to include a slightly wrong name than to miss a tenant entirely.
+
+Return ONLY valid JSON.` },
         { inlineData: { data: base64, mimeType } },
       ],
     }],
-    config: { responseMimeType: 'application/json' },
+    config: {
+      responseMimeType: 'application/json',
+      thinkingConfig: { thinkingLevel: 'MEDIUM' as unknown as undefined },
+    },
   });
 
   const parsed = JSON.parse(response.text || '{}');

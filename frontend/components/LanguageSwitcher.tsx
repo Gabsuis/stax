@@ -15,11 +15,11 @@ export default function LanguageSwitcher() {
   return (
     <button
       onClick={() => router.replace(pathname, { locale: switchTo })}
-      className="inline-flex items-center justify-center h-9 w-9 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+      className="inline-flex items-center gap-1.5 h-9 px-2.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
       title={switchTo === "en" ? "Switch to English" : "עבור לעברית"}
     >
       <Globe className="h-4 w-4" />
-      <span className="sr-only">{label}</span>
+      <span className="text-xs font-medium">{label}</span>
     </button>
   )
 }
