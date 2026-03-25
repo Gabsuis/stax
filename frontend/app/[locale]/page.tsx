@@ -44,7 +44,9 @@ function HeroStack() {
   const building = [...buildings].sort((a, b) => b.floors.length - a.floors.length)[0]
   const reversedFloors = [...building.floors].reverse()
 
-  // Flatten all blocks to assign a global stagger index
+  // Count total blocks to reverse the stagger (bottom-up = building being constructed)
+  let totalSlots = 0
+  reversedFloors.forEach((floor) => { totalSlots++; totalSlots += floor.blocks.length })
   let blockIndex = 0
 
   return (
@@ -65,8 +67,8 @@ function HeroStack() {
 
       <div className="relative flex flex-col gap-[2px] w-full">
         {reversedFloors.map((floor) => {
-          // Floor label gets its own stagger slot
-          const floorDelay = 0.5 + blockIndex * 0.04
+          // Reverse stagger: bottom floors animate first (building rises upward)
+          const floorDelay = 0.5 + (totalSlots - blockIndex - 1) * 0.04
           blockIndex++
 
           return (
@@ -83,7 +85,7 @@ function HeroStack() {
                 const pct = (block.sqm / floor.totalSqm) * 100
                 const isVacant = block.status === "vacant"
                 const color = getLeaseColor(block.leaseEnd)
-                const delay = 0.5 + blockIndex * 0.04
+                const delay = 0.5 + (totalSlots - blockIndex - 1) * 0.04
                 blockIndex++
 
                 return (
@@ -251,7 +253,7 @@ export default function LandingPage() {
                   </div>
                   <div className="w-px h-10 bg-border" />
                   <div>
-                    <div className="text-3xl font-display data-value text-lease-green">{t("landing.statChurn")}</div>
+                    <div className="text-3xl font-display data-value">{t("landing.statChurn")}</div>
                     <div className="text-xs text-muted-foreground uppercase tracking-[0.15em] mt-1">{t("landing.statChurnLabel")}</div>
                   </div>
                   <div className="w-px h-10 bg-border" />
