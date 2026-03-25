@@ -1,4 +1,4 @@
-import { Mada, Instrument_Serif, JetBrains_Mono } from "next/font/google"
+import { Plus_Jakarta_Sans, Instrument_Serif, JetBrains_Mono } from "next/font/google"
 import { NextIntlClientProvider, hasLocale } from "next-intl"
 import { getMessages, setRequestLocale } from "next-intl/server"
 import { notFound } from "next/navigation"
@@ -6,10 +6,10 @@ import { routing } from "@/i18n/routing"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import "../globals.css"
 
-const mada = Mada({
+const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-sans",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["300", "400", "500", "600", "700", "800"],
 })
 
 const instrumentSerif = Instrument_Serif({
@@ -48,7 +48,7 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale} dir={dir} className="dark">
-      <body className={`${mada.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable} antialiased`}>
+      <body className={`${plusJakartaSans.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable} antialiased`}>
         <NextIntlClientProvider messages={messages}>
           <TooltipProvider>
             {children}
