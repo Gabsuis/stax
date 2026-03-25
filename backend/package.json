@@ -21,6 +21,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@google/adk-devtools": "^0.5.0",
     "@types/node": "^25.5.0",
     "typescript": "^6.0.2"
   }

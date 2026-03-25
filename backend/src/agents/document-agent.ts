@@ -96,7 +96,7 @@ Determine:
 - summary: one sentence describing the document`,
   outputSchema: classifySchema,
   outputKey: 'classification',
-  includeContents: 'none',
+  includeContents: 'default',
   generateContentConfig: {
     thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
   },
@@ -177,7 +177,7 @@ City mapping: הרצליה=Herzliya, תל אביב=Tel Aviv, רמת גן=Ramat G
 ONLY include data explicitly in the document. Do NOT invent numbers.`,
   outputSchema: buildingsSchema,
   outputKey: 'buildings_data',
-  includeContents: 'none',
+  includeContents: 'default',
   generateContentConfig: {
     thinkingConfig: { thinkingLevel: ThinkingLevel.MEDIUM },
   },
@@ -276,7 +276,7 @@ EXAMPLE: "קומה 11, 1,422 מ"ר, שכירות משנה, מרוהט ומאוב
 floor: 11, blocks: [{sqm: 1422, status: "vacant", is_sublease: true, delivery_condition: "furnished_equipped"}]`,
   outputSchema: floorsSchema,
   outputKey: 'floors_data',
-  includeContents: 'none',
+  includeContents: 'default',
   generateContentConfig: {
     thinkingConfig: { thinkingLevel: ThinkingLevel.HIGH },
   },
@@ -389,7 +389,7 @@ AMENITIES (use ONLY these values):
 gym, lobby_lounge, restaurant, cafe, conference_center, retail, rooftop_terrace, ev_charging, shower_rooms, bike_storage, daycare, synagogue`,
   outputSchema: financialsSchema,
   outputKey: 'financials_data',
-  includeContents: 'none',
+  includeContents: 'default',
   generateContentConfig: {
     thinkingConfig: { thinkingLevel: ThinkingLevel.MEDIUM },
   },
@@ -496,18 +496,36 @@ const mergerAgent = new LlmAgent({
 ## Financials & contacts: {financials_data}
 
 MERGE RULES:
-1. For each building name, combine ALL data from all extraction steps into one object.
-2. Keep EVERY field from EVERY step. Never drop data.
-3. Copy the building-level rent/mgmt_fee down to block-level rent_per_sqm/management_fee_sqm if the block doesn't have its own.
-4. Calculate vacant_sqm = sum of sqm for all blocks with status "vacant".
+1. Combine ALL data from all extraction steps per building name.
+2. Keep EVERY field. Never drop data.
+3. Copy building-level rent/mgmt_fee to block-level rent_per_sqm/management_fee_sqm.
+4. Calculate vacant_sqm = sum of sqm for blocks with status "vacant".
 5. Calculate occupancy_rate = (total_sqm - vacant_sqm) / total_sqm if total_sqm > 0.
-6. Set _confidence: high (0.8+) if most fields filled, low (<0.5) if sparse.
-7. document_type and language come from classification.`,
+6. If floor 20 is mentioned but floor_count is missing, set floor_count to at least 20.
+7. Set _confidence: 0.8+ if most fields filled, <0.5 if sparse.
+8. document_type and language from classification. language must be "he", "en", or "mixed" (lowercase).
+
+NORMALIZE TO EXACT ENUM VALUES (critical):
+- delivery_condition must be EXACTLY one of: shell_and_core, as_is, as_is_new, as_is_high_level, turnkey, furnished, furnished_equipped, renovation_required
+  Map: "fully fitted" → turnkey, "high-end finishes" → turnkey, "מעטפת" → shell_and_core, "מרוהט" → furnished, "מרוהט ומאובזר" → furnished_equipped
+- leed_rating must be EXACTLY: platinum, gold, silver, certified, none (all LOWERCASE)
+  Map: "Platinum" → platinum, "LEED Platinum" → platinum
+- amenities must use ONLY these values: gym, lobby_lounge, restaurant, cafe, conference_center, retail, rooftop_terrace, ev_charging, shower_rooms, bike_storage, daycare, synagogue
+  Map: "fitness center" → gym, "lobby" → lobby_lounge, "auditorium" → conference_center, "24/7 security" → SKIP (not an amenity)
+- status must be: vacant, occupied
+- tenant_name: use null (not the string "null") for vacant blocks
+- area must be: north, center, south (or omit if unknown)
+- Dates ISO format: YYYY-MM-DD
+
+CLEANUP:
+- If total_sqm was not stated for the whole building, OMIT it. Do not use the unit sqm as building sqm.
+- Remove duplicate floor entries (e.g. if floor 20 appears twice, keep only one with the most data).
+- year_built: keep if the model knows it from world knowledge. It's OK to use known facts about famous buildings.`,
   outputSchema: finalSchema,
   outputKey: 'extraction_result',
-  includeContents: 'none',
+  includeContents: 'default',
   generateContentConfig: {
-    thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
+    thinkingConfig: { thinkingLevel: ThinkingLevel.MEDIUM },
   },
 });
 
