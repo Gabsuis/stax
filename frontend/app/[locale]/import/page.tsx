@@ -51,6 +51,7 @@ export default function ImportPage() {
   const [saving, setSaving] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [showPreview, setShowPreview] = useState(false)
+  const [historyPreview, setHistoryPreview] = useState<{ url: string; name: string } | null>(null)
   const [lobbySign, setLobbySign] = useState<{ building_name: string; building_name_en: string; address: string; city: string; city_en: string; entrance: string; floor_count: number; floors: { floor_number: string; tenants: string[]; has_vacancy: boolean }[] }[] | null>(null)
   const [dragOver, setDragOver] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
@@ -775,31 +776,40 @@ export default function ImportPage() {
             {/* Right sidebar: import history */}
             <div className="glass-strong rounded-2xl p-6 h-fit">
               <h3 className="text-base font-semibold mb-4">{t("recentImports")}</h3>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {recentImports.length === 0 && (
                   <p className="text-sm text-muted-foreground/50">{t("noRecent")}</p>
                 )}
                 {recentImports.map((doc) => {
-                  const statusIcon = doc.ai_status === "completed" ? (
-                    <Check className="w-3.5 h-3.5 text-lease-green shrink-0" />
-                  ) : doc.ai_status === "failed" ? (
-                    <AlertCircle className="w-3.5 h-3.5 text-lease-red shrink-0" />
-                  ) : doc.ai_status === "processing" ? (
-                    <Loader2 className="w-3.5 h-3.5 text-primary animate-spin shrink-0" />
-                  ) : (
-                    <Clock className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                  )
-
-                  const statusColor = doc.ai_status === "completed"
-                    ? "bg-lease-green/10 border-lease-green/15"
-                    : doc.ai_status === "failed"
-                    ? "bg-lease-red/10 border-lease-red/15"
-                    : "bg-primary/10 border-primary/15"
+                  const isCompleted = doc.ai_status === "completed"
+                  const isFailed = doc.ai_status === "failed"
+                  const isImage = doc.file_type?.startsWith("image/")
 
                   return (
-                    <div key={doc.id} className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/[0.03] transition-colors">
-                      <div className={cn("w-8 h-8 rounded-lg border flex items-center justify-center shrink-0", statusColor)}>
-                        <FileText className="w-3.5 h-3.5 text-muted-foreground" />
+                    <button
+                      key={doc.id}
+                      onClick={async () => {
+                        if (doc.storage_path) {
+                          const { supabaseBrowser } = await import("@/lib/supabase-client")
+                          const { data } = await supabaseBrowser.storage.from("documents").createSignedUrl(doc.storage_path, 3600)
+                          if (data?.signedUrl) {
+                            setHistoryPreview({ url: data.signedUrl, name: doc.file_name })
+                          }
+                        }
+                      }}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/[0.04] transition-colors text-start"
+                    >
+                      <div className={cn(
+                        "w-8 h-8 rounded-lg border flex items-center justify-center shrink-0",
+                        isCompleted ? "bg-lease-green/10 border-lease-green/15" :
+                        isFailed ? "bg-lease-red/10 border-lease-red/15" :
+                        "bg-primary/10 border-primary/15"
+                      )}>
+                        {isImage ? (
+                          <Building2 className="w-3.5 h-3.5 text-muted-foreground" />
+                        ) : (
+                          <FileText className="w-3.5 h-3.5 text-muted-foreground" />
+                        )}
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="text-sm font-medium truncate" title={doc.file_name}>
@@ -807,20 +817,54 @@ export default function ImportPage() {
                         </div>
                         <div className="text-[10px] text-muted-foreground flex items-center gap-1">
                           <span>{formatDistanceToNow(new Date(doc.created_at), { addSuffix: true })}</span>
-                          {doc.building_count > 0 && (
-                            <span>· {doc.building_count} buildings</span>
-                          )}
-                          {doc.ai_confidence && (
-                            <span>· {Math.round(doc.ai_confidence * 100)}%</span>
-                          )}
+                          {doc.building_count > 0 && <span>· {doc.building_count} bldg</span>}
+                          {isFailed && <span className="text-lease-red">· failed</span>}
                         </div>
                       </div>
-                      {statusIcon}
-                    </div>
+                      {isCompleted ? (
+                        <Check className="w-3.5 h-3.5 text-lease-green shrink-0" />
+                      ) : isFailed ? (
+                        <AlertCircle className="w-3.5 h-3.5 text-lease-red shrink-0" />
+                      ) : (
+                        <Clock className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                      )}
+                    </button>
                   )
                 })}
               </div>
             </div>
+
+            {/* History document preview modal */}
+            <AnimatePresence>
+              {historyPreview && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 z-50 flex items-center justify-center p-8"
+                  onClick={() => setHistoryPreview(null)}
+                >
+                  <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+                  <motion.div
+                    initial={{ scale: 0.95, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.95, opacity: 0 }}
+                    className="relative bg-background/95 backdrop-blur-2xl border border-border rounded-2xl max-w-3xl max-h-[85vh] overflow-hidden shadow-2xl"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="flex items-center justify-between px-5 py-3 border-b border-border">
+                      <span className="text-sm font-medium truncate">{historyPreview.name}</span>
+                      <button onClick={() => setHistoryPreview(null)} className="w-7 h-7 flex items-center justify-center rounded-full glass hover:bg-white/[0.06]">
+                        <X className="w-3.5 h-3.5 text-muted-foreground" />
+                      </button>
+                    </div>
+                    <div className="p-4 overflow-auto max-h-[calc(85vh-48px)]">
+                      <img src={historyPreview.url} alt={historyPreview.name} className="w-full rounded-lg" />
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </main>
