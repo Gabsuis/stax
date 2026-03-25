@@ -50,13 +50,17 @@ interface Props {
   onClose: () => void
 }
 
-function DataRow({ label, value }: { label: string; value: string | null | undefined }) {
+function DataRow({ label, value, href }: { label: string; value: string | null | undefined; href?: string }) {
+  const display = value || "Unknown"
+  const style = value ? "text-foreground" : "text-foreground/25 italic"
   return (
     <div className="flex items-center justify-between py-1.5">
       <span className="text-xs text-muted-foreground">{label}</span>
-      <span className={`text-xs font-medium ${value ? "text-foreground" : "text-foreground/25 italic"}`}>
-        {value || "Unknown"}
-      </span>
+      {href && value ? (
+        <a href={href} className={`text-xs font-medium ${style} hover:text-primary transition-colors`}>{display}</a>
+      ) : (
+        <span className={`text-xs font-medium ${style}`}>{display}</span>
+      )}
     </div>
   )
 }
@@ -190,8 +194,8 @@ export default function BuildingModal({ building: initialBuilding, onClose }: Pr
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-0">
                 <DataRow label="Owner" value={building.owner !== "—" ? building.owner : null} />
                 <DataRow label="Contact" value={building.contactName || (building.contact !== "—" ? building.contact : null)} />
-                <DataRow label="Phone" value={building.contactPhone || (building.phone !== "—" ? building.phone : null)} />
-                <DataRow label="Email" value={building.contactEmail} />
+                <DataRow label="Phone" value={building.contactPhone || (building.phone !== "—" ? building.phone : null)} href={building.contactPhone ? `tel:${building.contactPhone}` : undefined} />
+                <DataRow label="Email" value={building.contactEmail} href={building.contactEmail ? `mailto:${building.contactEmail}` : undefined} />
                 <DataRow label="Year Built" value={building.yearBuilt?.toString()} />
                 <DataRow label="LEED" value={leedLabel} />
                 <DataRow label="Delivery" value={deliveryLabel} />

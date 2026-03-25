@@ -129,15 +129,23 @@ app.post('/process', async (c) => {
 
         if (author && author !== lastAuthor) {
           lastAuthor = author;
-          const stepMessages: Record<string, string> = {
-            classifier: 'Step 1/5: Classifying document...',
-            buildings_extractor: 'Step 2/5: Extracting building identities...',
-            floors_extractor: 'Step 3/5: Extracting floors & tenants...',
-            financials_extractor: 'Step 4/5: Extracting financials & contacts...',
-            merger: 'Step 5/5: Merging all data...',
+          const steps: Record<string, { step: number; total: number; message: string }> = {
+            parser: { step: 1, total: 6, message: 'Reading & parsing document...' },
+            classifier: { step: 2, total: 6, message: 'Classifying document type...' },
+            buildings_extractor: { step: 3, total: 6, message: 'Identifying buildings...' },
+            floors_extractor: { step: 4, total: 6, message: 'Extracting floors & tenants...' },
+            financials_extractor: { step: 5, total: 6, message: 'Extracting financials & contacts...' },
+            merger: { step: 6, total: 6, message: 'Assembling final data...' },
           };
-          const msg = stepMessages[author];
-          if (msg) await send('progress', { stage: 'extracting', message: msg });
+          const stepInfo = steps[author];
+          if (stepInfo) {
+            await send('progress', {
+              stage: 'extracting',
+              message: stepInfo.message,
+              step: stepInfo.step,
+              total: stepInfo.total,
+            });
+          }
         }
 
         if (isFinalResponse(event) && author) {

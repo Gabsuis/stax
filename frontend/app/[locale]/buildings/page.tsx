@@ -10,10 +10,14 @@ import FilterBar from "@/components/FilterBar"
 import BuildingCard from "@/components/BuildingCard"
 import BuildingModal from "@/components/BuildingModal"
 import { formatSqm, formatPrice } from "@/lib/utils"
-import { LayoutGrid, List, ChevronDown } from "lucide-react"
+import { LayoutGrid, List, ChevronDown, Search, ArrowUpDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import LanguageSwitcher from "@/components/LanguageSwitcher"
 import ThemeToggle from "@/components/ThemeToggle"
+import { BuildingsTableSkeleton, BuildingsCardsSkeleton } from "@/components/LoadingSkeleton"
+
+type SortKey = "name" | "class" | "totalSqm" | "vacantSqm" | "occupancy" | "askingPrice" | "floorCount"
+type SortDir = "asc" | "desc"
 
 export default function BuildingsPage() {
   const t = useTranslations("buildingsPage")
@@ -26,23 +30,53 @@ export default function BuildingsPage() {
   const [view, setView] = useState<"table" | "cards">("table")
   const [city, setCity] = useState("all")
   const [cityOpen, setCityOpen] = useState(false)
+  const [search, setSearch] = useState("")
+  const [sortKey, setSortKey] = useState<SortKey>("name")
+  const [sortDir, setSortDir] = useState<SortDir>("asc")
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir(sortDir === "asc" ? "desc" : "asc")
+    } else {
+      setSortKey(key)
+      setSortDir("desc")
+    }
+  }
 
   const selectedCity = cities.find((c) => c.city === city)
   const cityLabel = city === "all"
     ? (locale === "he" ? "כל הערים" : "All Cities")
     : (locale === "he" ? (selectedCity?.city ?? city) : (selectedCity?.city_en ?? city))
 
-  const filtered = useMemo(
-    () =>
-      buildings.filter(
-        (b) =>
-          b.totalSqm > 0 &&
-          (city === "all" || b.city === city) &&
-          (areaFilter === "all" || b.area === areaFilter) &&
-          (classFilter === "all" || b.class === classFilter)
-      ),
-    [buildings, city, areaFilter, classFilter]
-  )
+  const filtered = useMemo(() => {
+    const searchLower = search.toLowerCase()
+    const result = buildings.filter(
+      (b) =>
+        (city === "all" || b.city === city) &&
+        (areaFilter === "all" || b.area === areaFilter) &&
+        (classFilter === "all" || b.class === classFilter) &&
+        (!search || b.name.toLowerCase().includes(searchLower) ||
+         b.nameEn.toLowerCase().includes(searchLower) ||
+         b.address.toLowerCase().includes(searchLower))
+    )
+
+    // Sort
+    result.sort((a, b) => {
+      let cmp = 0
+      switch (sortKey) {
+        case "name": cmp = a.name.localeCompare(b.name, "he"); break
+        case "class": cmp = a.class.localeCompare(b.class); break
+        case "totalSqm": cmp = a.totalSqm - b.totalSqm; break
+        case "vacantSqm": cmp = a.vacantSqm - b.vacantSqm; break
+        case "occupancy": cmp = a.occupancy - b.occupancy; break
+        case "askingPrice": cmp = a.askingPrice - b.askingPrice; break
+        case "floorCount": cmp = a.floorCount - b.floorCount; break
+      }
+      return sortDir === "asc" ? cmp : -cmp
+    })
+
+    return result
+  }, [buildings, city, areaFilter, classFilter, search, sortKey, sortDir])
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -133,28 +167,69 @@ export default function BuildingsPage() {
             </div>
           </div>
 
-          {/* Filters */}
-          <FilterBar
-            areaFilter={areaFilter}
-            classFilter={classFilter}
+          {/* Search + Filters */}
+          <div className="flex items-center gap-4">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={locale === "he" ? "חפש בניין..." : "Search buildings..."}
+                className="w-full ps-10 pe-4 py-2 text-sm bg-transparent glass rounded-full border-none focus:outline-none focus:ring-1 focus:ring-primary/30 placeholder:text-muted-foreground/40"
+              />
+            </div>
+            <FilterBar
+              areaFilter={areaFilter}
+              classFilter={classFilter}
             onAreaChange={setAreaFilter}
             onClassChange={setClassFilter}
-          />
+            />
+          </div>
+
+          {/* Loading */}
+          {loading && view === "table" && <BuildingsTableSkeleton />}
+          {loading && view === "cards" && <BuildingsCardsSkeleton />}
+
+          {/* Empty state */}
+          {!loading && filtered.length === 0 && (
+            <div className="glass-strong rounded-2xl p-12 text-center">
+              <p className="text-muted-foreground">{search ? (locale === "he" ? "לא נמצאו תוצאות" : "No results found") : (locale === "he" ? "אין בניינים בקטגוריה זו" : "No buildings in this category")}</p>
+            </div>
+          )}
 
           {/* Table View */}
-          {view === "table" && (
+          {!loading && view === "table" && filtered.length > 0 && (
             <div className="glass-strong rounded-2xl overflow-hidden">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="text-start text-xs text-muted-foreground uppercase tracking-[0.15em] font-medium px-5 py-4">{t("colName")}</th>
-                    <th className="text-start text-xs text-muted-foreground uppercase tracking-[0.15em] font-medium px-4 py-4">{t("colClass")}</th>
-                    <th className="text-start text-xs text-muted-foreground uppercase tracking-[0.15em] font-medium px-4 py-4">{t("colArea")}</th>
-                    <th className="text-end text-xs text-muted-foreground uppercase tracking-[0.15em] font-medium px-4 py-4">{t("colTotalSqm")}</th>
-                    <th className="text-end text-xs text-muted-foreground uppercase tracking-[0.15em] font-medium px-4 py-4">{t("colVacantSqm")}</th>
-                    <th className="text-end text-xs text-muted-foreground uppercase tracking-[0.15em] font-medium px-4 py-4">{t("colOccupancy")}</th>
-                    <th className="text-end text-xs text-muted-foreground uppercase tracking-[0.15em] font-medium px-4 py-4">{t("colPrice")}</th>
-                    <th className="text-end text-xs text-muted-foreground uppercase tracking-[0.15em] font-medium px-5 py-4">{t("colFloors")}</th>
+                    {([
+                      { key: "name" as SortKey, label: t("colName"), align: "text-start", px: "px-5" },
+                      { key: "class" as SortKey, label: t("colClass"), align: "text-start", px: "px-4" },
+                      { key: null, label: t("colArea"), align: "text-start", px: "px-4" },
+                      { key: "totalSqm" as SortKey, label: t("colTotalSqm"), align: "text-end", px: "px-4" },
+                      { key: "vacantSqm" as SortKey, label: t("colVacantSqm"), align: "text-end", px: "px-4" },
+                      { key: "occupancy" as SortKey, label: t("colOccupancy"), align: "text-end", px: "px-4" },
+                      { key: "askingPrice" as SortKey, label: t("colPrice"), align: "text-end", px: "px-4" },
+                      { key: "floorCount" as SortKey, label: t("colFloors"), align: "text-end", px: "px-5" },
+                    ] as const).map((col, i) => (
+                      <th
+                        key={i}
+                        onClick={col.key ? () => toggleSort(col.key!) : undefined}
+                        className={cn(
+                          `${col.align} text-xs text-muted-foreground uppercase tracking-[0.15em] font-medium ${col.px} py-4`,
+                          col.key && "cursor-pointer hover:text-foreground transition-colors select-none"
+                        )}
+                      >
+                        <span className="inline-flex items-center gap-1">
+                          {col.label}
+                          {col.key && sortKey === col.key && (
+                            <ArrowUpDown className="w-3 h-3" />
+                          )}
+                        </span>
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
@@ -199,7 +274,7 @@ export default function BuildingsPage() {
           )}
 
           {/* Card View */}
-          {view === "cards" && (
+          {!loading && view === "cards" && filtered.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
               {filtered.map((b) => (
                 <BuildingCard key={b.id} building={b} onSelect={setSelectedBuilding} />

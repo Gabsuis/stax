@@ -40,21 +40,22 @@ export default function KpiStrip({ building }: Props) {
     ? LEED_LABELS[building.leedRating] || building.leedRating
     : null
 
-  const unk = "Unknown"
-  const cells = [
-    { label: t("totalSqm"), value: building.totalSqm ? formatSqm(building.totalSqm, locale) : unk, color: "" },
-    { label: t("vacantSqm"), value: building.vacantSqm ? formatSqm(building.vacantSqm, locale) : unk, color: building.vacantSqm ? "text-lease-red" : "" },
-    { label: t("occupancy"), value: occ > 0 ? `${occ}%` : unk, color: occ >= 85 ? "text-lease-green" : occ >= 65 ? "" : occ > 0 ? "text-lease-red" : "" },
-    { label: t("floors"), value: building.floorCount ? `${building.floorCount}` : unk, color: "" },
+  // Core cells — always shown
+  const cells: { label: string; value: string; color: string }[] = [
+    { label: t("totalSqm"), value: building.totalSqm ? formatSqm(building.totalSqm, locale) : "—", color: "" },
+    { label: t("vacantSqm"), value: building.vacantSqm ? formatSqm(building.vacantSqm, locale) : "—", color: building.vacantSqm ? "text-lease-red" : "" },
+    { label: t("occupancy"), value: occ > 0 ? `${occ}%` : "—", color: occ >= 85 ? "text-lease-green" : occ >= 65 ? "" : occ > 0 ? "text-lease-red" : "" },
+    { label: t("floors"), value: building.floorCount ? `${building.floorCount}` : "—", color: "" },
     { label: t("vacantFloors"), value: `${vacantFloors}`, color: vacantFloors > 0 ? "text-lease-red" : "" },
-    { label: t("pricePerSqm"), value: building.askingPrice ? formatPrice(building.askingPrice, locale) : unk, color: "" },
-    { label: t("managementFee"), value: building.managementFee ? formatPrice(building.managementFee, locale) : unk, color: "" },
-    { label: t("finishLevel"), value: deliveryLabel || unk, color: "" },
-    { label: "LEED", value: leedLabel || unk, color: leedLabel ? "text-lease-green" : "" },
-    { label: t("yearBuilt"), value: building.yearBuilt ? `${building.yearBuilt}` : unk, color: "" },
-    { label: t("municipalTax"), value: building.municipalTaxSqm ? formatPrice(building.municipalTaxSqm, locale) : unk, color: "" },
-    { label: t("parkingRatio"), value: building.parkingRatio ? `1:${Math.round(1 / building.parkingRatio)}` : unk, color: "" },
+    { label: t("pricePerSqm"), value: building.askingPrice ? formatPrice(building.askingPrice, locale) : "—", color: "" },
+    { label: t("managementFee"), value: building.managementFee ? formatPrice(building.managementFee, locale) : "—", color: "" },
+    { label: t("finishLevel"), value: deliveryLabel || "—", color: "" },
   ]
+  // Optional cells — only shown when data exists
+  if (leedLabel) cells.push({ label: "LEED", value: leedLabel, color: "text-lease-green" })
+  if (building.yearBuilt) cells.push({ label: t("yearBuilt"), value: `${building.yearBuilt}`, color: "" })
+  if (building.municipalTaxSqm) cells.push({ label: t("municipalTax"), value: formatPrice(building.municipalTaxSqm, locale), color: "" })
+  if (building.parkingRatio) cells.push({ label: t("parkingRatio"), value: `1:${Math.round(1 / building.parkingRatio)}`, color: "" })
 
   // Dynamic grid: 4 cols on mobile, up to N cols on desktop
   const colCount = Math.min(cells.length, 12)
