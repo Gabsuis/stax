@@ -82,7 +82,7 @@ app.post('/process', async (c) => {
         // ── STEP 2: Extract lobby sign ──
         await send('progress', { stage: 'extracting', message: 'Reading lobby sign...', step: 2, total: 3 });
         const result = await extractLobbySign(base64, file.type);
-        console.log(`[EXTRACT] ${result.building_name} — ${result.floor_count} floors`);
+        console.log(`[EXTRACT] ${result.length} building(s): ${result.map(b => b.building_name || b.building_name_en || '?').join(', ')}`);
 
         // ── STEP 3: Check duplicates + return for preview ──
         await send('progress', { stage: 'checking', message: 'Checking for duplicates...', step: 3, total: 3 });
