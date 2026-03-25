@@ -116,9 +116,11 @@ app.post('/process', async (c) => {
         const author = event.author ?? '';
         const eventText = stringifyContent(event);
 
-        // Skip events that contain base64 data (user message with PDF)
-        const isBase64 = eventText.length > 10000 && /^[A-Za-z0-9+/=]+$/.test(eventText.slice(0, 100));
-        if (author && author !== 'user' && eventText && !isBase64) {
+        // Skip user messages and base64 blobs
+        if (author === 'user' || !eventText || eventText.length < 2) continue;
+        const isBase64 = eventText.length > 1000 && /^[A-Za-z0-9+/=\s]+$/.test(eventText.slice(0, 200));
+        if (isBase64) { console.log(`[SKIP] base64 blob (${eventText.length} chars)`); continue; }
+        {
           agentLogs.push({
             agent: author,
             timestamp: new Date().toISOString(),
@@ -126,15 +128,7 @@ app.post('/process', async (c) => {
           });
           // Keep the LAST output per agent (the final response)
           agentOutputs[author] = eventText;
-          console.log(`[AGENT:${author}] output (${eventText.length} chars):`);
-          // Log full output for short responses, truncate for long ones
-          if (eventText.length <= 3000) {
-            console.log(eventText);
-          } else {
-            console.log(eventText.slice(0, 1500));
-            console.log(`... (${eventText.length - 3000} chars truncated) ...`);
-            console.log(eventText.slice(-1500));
-          }
+          console.log(`[AGENT:${author}] (${eventText.length} chars): ${eventText.slice(0, 300)}${eventText.length > 300 ? '...' : ''}`);
         }
 
         if (author && author !== lastAuthor) {
