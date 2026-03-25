@@ -224,7 +224,7 @@ export default function LandingPage() {
                 className="flex items-center gap-3"
               >
                 <Link
-                  href="/dashboard"
+                  href="/buildings"
                   className="group inline-flex items-center gap-2.5 bg-primary text-primary-foreground px-7 py-3 rounded-full text-sm font-medium hover:opacity-90 transition-all"
                 >
                   {t("landing.ctaDashboard")}

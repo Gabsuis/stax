@@ -4,7 +4,7 @@ import { useTranslations, useLocale } from "next-intl"
 import { Link, usePathname } from "@/i18n/navigation"
 import { Building } from "@/types"
 import { formatSqm } from "@/lib/utils"
-import { PenTool, Home, Building2, Sparkles, Database } from "lucide-react"
+import { PenTool, Building2, Sparkles, Database } from "lucide-react"
 import Image from "next/image"
 
 
@@ -23,7 +23,6 @@ export default function Sidebar({ buildings }: Props) {
     : 0
 
   const nav = [
-    { href: "/" as const, label: t("nav.home"), icon: Home },
     { href: "/buildings" as const, label: t("nav.buildings"), icon: Building2 },
     { href: "/editor" as const, label: t("nav.editor"), icon: PenTool },
     { href: "/import" as const, label: t("nav.import"), icon: Database },

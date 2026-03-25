@@ -54,18 +54,7 @@ export function useCities(): UseCities {
         { city: 'רמת גן', city_en: 'Ramat Gan', count: 0 },
         { city: 'פתח תקווה', city_en: 'Petah Tikva', count: 0 },
         { city: 'בני ברק', city_en: 'Bnei Brak', count: 0 },
-        { city: 'נתניה', city_en: 'Netanya', count: 0 },
-        { city: 'חיפה', city_en: 'Haifa', count: 0 },
-        { city: 'ירושלים', city_en: 'Jerusalem', count: 0 },
-        { city: 'באר שבע', city_en: 'Beer Sheva', count: 0 },
-        { city: 'ראשון לציון', city_en: 'Rishon LeZion', count: 0 },
-        { city: 'חולון', city_en: 'Holon', count: 0 },
         { city: 'רעננה', city_en: 'Raanana', count: 0 },
-        { city: 'הוד השרון', city_en: 'Hod HaSharon', count: 0 },
-        { city: 'מודיעין', city_en: 'Modiin', count: 0 },
-        { city: 'כפר סבא', city_en: 'Kfar Saba', count: 0 },
-        { city: 'רחובות', city_en: 'Rehovot', count: 0 },
-        { city: 'אשדוד', city_en: 'Ashdod', count: 0 },
       ];
 
       // Merge: DB cities first (with counts), then defaults that aren't already in DB
