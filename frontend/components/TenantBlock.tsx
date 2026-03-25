@@ -21,8 +21,9 @@ export default function TenantBlock({ block, floorTotalSqm, isSelected, onSelect
   const t = useTranslations("legend")
   const tLease = useTranslations("lease")
   const locale = useLocale()
-  const pct = (block.sqm / floorTotalSqm) * 100
-  const showLabel = pct > 12
+  // When sqm is 0 (lobby signs), distribute equally among blocks on the floor
+  const pct = floorTotalSqm > 0 ? (block.sqm / floorTotalSqm) * 100 : 0
+  const showLabel = pct > 12 || floorTotalSqm === 0
   const isVacant = block.status === "vacant"
   const isSublease = block.isSublease ?? false
   const color = getLeaseColor(block.leaseEnd)
@@ -33,9 +34,9 @@ export default function TenantBlock({ block, floorTotalSqm, isSelected, onSelect
     <Tooltip>
       <TooltipTrigger
         onClick={() => onSelect(block.id)}
-        className="relative flex items-center cursor-pointer transition-all duration-200 overflow-hidden"
+        className={`relative flex items-center cursor-pointer transition-all duration-200 overflow-hidden ${pct === 0 ? "flex-1" : ""}`}
         style={{
-          width: `${pct}%`,
+          ...(pct > 0 ? { width: `${pct}%` } : {}),
           minWidth: "24px",
           height: 44,
           borderRadius: 8,
