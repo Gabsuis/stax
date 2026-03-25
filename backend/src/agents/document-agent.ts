@@ -70,11 +70,30 @@ CRITICAL PATTERNS IN ISRAELI CRE DOCUMENTS:
 8. "שכירות משנה" or "יחידה בשכירות משנה" = this is a SUBLEASE listing
 9. Availability: "זמינות מיידית" or "אכלוס מיידי" = available immediately
 
+LOBBY DIRECTORY SIGNS (very common — photos taken by brokers):
+10. These are photos of building lobby signs showing tenant names per floor
+11. Format: floor number (קומה X or just a number) next to company names/logos
+12. Read TOP to BOTTOM. Each row = one floor. Company names/logos = tenants on that floor.
+13. The building name is usually at the top of the sign (e.g. "גלגלי הפלדה 11", "בית REIT 1 הרצליה")
+14. If a company name appears on multiple floors, they occupy all those floors
+15. "כניסה א/ב" or "Entrance A/B" means the building has multiple entrances — each entrance is the SAME building
+16. "משרד להשכרה" next to a floor = that floor has space for lease (vacant)
+17. Phone numbers on the sign (like 058-XXXXXXX) are leasing contacts
+18. Example: A sign showing "קומה 4: Sigalit | קומה 2: GENEVX, edgeconnex | קומה 1: MEDCu, Otech"
+    = 4 floors, floor 4 has Sigalit, floor 2 has GENEVX + edgeconnex, floor 1 has MEDCu + Otech
+
+FLOOR PLANS (architectural drawings):
+19. These are blueprint/layout images of a single floor
+20. Extract: which floor, approximate sqm if shown, room labels, any tenant names marked
+21. Note the layout type: open plan, cellular offices, mix
+
 EXTRACTION RULES:
 - Read EVERY page cover to cover
 - Preserve ALL numbers exactly as written
 - For tables and visual layouts: extract as pipe-separated data (column|column|column)
-- For images: describe what you see (floor plan, building exterior, map, etc.)
+- For lobby directory signs: extract as "Floor N: Company1, Company2" format — one line per floor
+- For floor plan images: describe layout, note any room labels or measurements
+- For building exterior photos: note the building name if visible
 - For contacts: extract name, title, every phone number, every email
 - Separate pages with ---PAGE N---
 - Include title lines, headers, small print, footnotes — EVERYTHING`,
@@ -113,7 +132,7 @@ const classifierAgent = new LlmAgent({
 {parsed_content}
 
 Determine:
-- document_type: "vacancy_listing" (one space for rent/sublease), "building_brochure" (one building marketing), "multi_building_catalog" (newsletter with many buildings like "מידעון"), "broker_listing" (broker inventory like "דיוור מתווכים"), "lease_agreement", "floor_plan", "other"
+- document_type: "vacancy_listing" (one space for rent/sublease), "building_brochure" (one building marketing), "multi_building_catalog" (newsletter with many buildings like "מידעון"), "broker_listing" (broker inventory like "דיוור מתווכים"), "lease_agreement", "floor_plan" (architectural drawing OR lobby directory sign photo showing tenants per floor), "building_photo" (exterior/interior photo), "other"
 - language: "he", "en", or "mixed"
 - building_count: how many DISTINCT buildings (not floors/units)
 - is_sublease: true if "שכירות משנה" or "sublease" or "sub-let" appears
@@ -165,30 +184,40 @@ const buildingsSchema: Schema = {
 const buildingsAgent = new LlmAgent({
   name: 'buildings_extractor',
   model: FLASH,
-  instruction: `From the parsed document, extract the identity of EACH building.
+  instruction: `Extract building identity from the parsed document.
 
 ## Parsed content:
 {parsed_content}
 
 ## Classification: {classification}
 
-FOR EACH BUILDING extract:
-- name: Hebrew name (e.g. "מגדלי זיו", "אטריום טאוור")
-- name_en: English name (e.g. "Migdalei Ziv", "Atrium Tower")
-- address: street address
-- city: Hebrew city name
-- city_en: English city name. Use this mapping:
-  הרצליה=Herzliya, תל אביב=Tel Aviv, רמת גן=Ramat Gan, חולון=Holon, פתח תקווה=Petah Tikva, חיפה=Haifa, רעננה=Raanana, הוד השרון=Hod HaSharon, נתניה=Netanya, מודיעין=Modiin, ירושלים=Jerusalem
-- neighborhood: sub-area (רמת החייל, הרצליה פיתוח, בורסה, קריית אריה, etc.)
-- class: building class if mentioned (A+, A, B, C)
-- year_built: ONLY if explicitly stated. Do NOT guess.
-- leed_rating: platinum, gold, silver, certified — ONLY if stated
-- total_sqm: ONLY the total BUILDING area if stated (e.g. "100,000 מ"ר"). NOT the floor/unit area.
-- floor_count: if the document mentions "floor 20", then floor_count >= 20
-- owner_name: if "בעל הנכס" or owner is mentioned (e.g. "אשטרום", "מגדל", "אמות")
-- confidence: 0.0-1.0
+BEHAVIOR DEPENDS ON DOCUMENT TYPE (from classification):
 
-IMPORTANT: A vacancy listing for "760 sqm on the 20th floor" does NOT mean the building is 760 sqm total. The 760 is the UNIT size, not the building.`,
+**If floor_plan (lobby directory sign photo):**
+- Expect ONE building. Name is at the top of the sign (e.g. "גלגלי הפלדה 11", "בית REIT 1 הרצליה").
+- Address may not be available. City may be guessable from the name.
+- No sqm data, no class, no year — just the building name and whatever is on the sign.
+- "כניסה א/ב" = entrances of the SAME building, not separate buildings.
+
+**If vacancy_listing:**
+- Expect ONE building. Name is usually prominent at the top.
+- total_sqm: do NOT confuse the unit size with total building size. "760 sqm on floor 20" ≠ 760 sqm building.
+- If the document says "בהיקף כולל של כ-100,000 מ"ר" — THAT is total_sqm.
+- floor_count: if floor 20 is mentioned → floor_count is at least 20.
+
+**If building_brochure:**
+- Expect ONE building with detailed specs.
+- total_sqm, class, year_built, leed_rating should all be present.
+
+**If multi_building_catalog or broker_listing:**
+- Expect MANY buildings. Scan every page.
+- Each building may have different amounts of data.
+
+FOR EACH BUILDING extract: name, name_en, address, city, city_en, neighborhood, class, year_built, leed_rating, total_sqm, floor_count, owner_name, confidence.
+
+City mapping: הרצליה=Herzliya, תל אביב=Tel Aviv, רמת גן=Ramat Gan, חולון=Holon, פתח תקווה=Petah Tikva, חיפה=Haifa, רעננה=Raanana, הוד השרון=Hod HaSharon, נתניה=Netanya, מודיעין=Modiin, ירושלים=Jerusalem, בני ברק=Bnei Brak, אזור=Azor, אור יהודה=Or Yehuda, יבנה=Yavne, נוף הגליל=Nof HaGalil, רחובות=Rehovot.
+
+ONLY include data explicitly in the document. Do NOT invent numbers.`,
   outputSchema: buildingsSchema,
   outputKey: 'buildings_data',
   includeContents: 'none',
@@ -250,7 +279,7 @@ const floorsSchema: Schema = {
 const floorsAgent = new LlmAgent({
   name: 'floors_extractor',
   model: FLASH,
-  instruction: `From the parsed document, extract floor and unit details for each building.
+  instruction: `Extract floor and unit details from the parsed document.
 
 ## Parsed content:
 {parsed_content}
@@ -258,25 +287,36 @@ const floorsAgent = new LlmAgent({
 ## Buildings found: {buildings_data}
 ## Classification: {classification}
 
-FOR EACH BUILDING, extract every floor/unit mentioned:
-- floor_number: the floor number (קומה 11 = 11, "20th Floor" = 20)
-- total_sqm: floor/unit area in sqm
-- blocks: array of spaces on this floor
+BEHAVIOR BY DOCUMENT TYPE:
 
-FOR EACH BLOCK:
-- tenant_name: company name if occupied, null if vacant
-- sqm: area in sqm
-- status: "vacant" if available for lease, "occupied" if tenant is there
-- is_sublease: true if this is a sublease (שכירות משנה). If the whole document is a sublease listing, ALL blocks are subleases.
-- sublease_tenant: the ORIGINAL tenant who holds the master lease and is subletting (e.g. if "בעל הנכס: מגדל" and "שכירות משנה" — the sublease_tenant is whoever currently occupies but is offering the sublease)
-- delivery_condition: "shell_and_core" (מעטפת), "as_is", "as_is_new" (גמר חדש), "turnkey" (מוכן לכניסה), "furnished" (מרוהט), "furnished_equipped" (מרוהט ומאובזר)
-- available_from: ISO date if a specific date is given. null if "זמינות מיידית" (immediate).
-- lease_end: when the lease expires. "30/6/28" = "2028-06-30". "יוני 2027" = "2027-06-01".
+**If floor_plan (lobby directory sign):**
+- Each ROW on the sign = one floor. Number on the side = floor number.
+- Each company name/logo = one block, status "occupied", sqm: 0 (unknown from sign).
+- "משרד להשכרה" = one block, status "vacant", sqm: 0.
+- Do NOT invent sqm. Set 0 for all blocks from lobby signs.
+- Company on multiple floors → block on EACH floor.
 
-EXAMPLE: A vacancy listing saying "קומה 11, 1,422 מ"ר, שכירות משנה, מרוהט ומאובזר, זמינות מיידית" =
-floor_number: 11, blocks: [{sqm: 1422, status: "vacant", is_sublease: true, delivery_condition: "furnished_equipped", available_from: null}]
+**If vacancy_listing:**
+- Usually ONE floor, ONE block (the space offered).
+- "full-floor layout" / "entire floor" → ONE block with full floor sqm.
+- If document is sublease (שכירות משנה) → is_sublease: true on ALL blocks.
 
-If the document says "full-floor layout" or "entire floor" → ONE block with the full floor sqm.`,
+**If multi_building_catalog / broker_listing:**
+- Per-building floor details, possibly in tables.
+- Extract each building's floors separately.
+
+FIELDS:
+- floor_number: קומה 11 = 11, "20th Floor" = 20
+- sqm: area (0 if unknown)
+- status: "vacant" or "occupied"
+- is_sublease: true if שכירות משנה
+- sublease_tenant: original tenant subletting
+- delivery_condition: shell_and_core (מעטפת), as_is, as_is_new (גמר חדש), turnkey, furnished (מרוהט), furnished_equipped (מרוהט ומאובזר)
+- available_from: ISO date or null for immediate
+- lease_end: "30/6/28" → "2028-06-30", "יוני 2027" → "2027-06-01"
+
+EXAMPLE: "קומה 11, 1,422 מ"ר, שכירות משנה, מרוהט ומאובזר" →
+floor: 11, blocks: [{sqm: 1422, status: "vacant", is_sublease: true, delivery_condition: "furnished_equipped"}]`,
   outputSchema: floorsSchema,
   outputKey: 'floors_data',
   includeContents: 'none',
@@ -343,42 +383,53 @@ const financialsSchema: Schema = {
 const financialsAgent = new LlmAgent({
   name: 'financials_extractor',
   model: FLASH,
-  instruction: `From the parsed document, extract financial data, contacts, and amenities for each building.
+  instruction: `Extract financial data, contacts, and amenities from the parsed document.
 
 ## Parsed content:
 {parsed_content}
 
 ## Buildings: {buildings_data}
+## Classification: {classification}
 
-PRICING — Israeli CRE documents show prices in these patterns:
-- "Rent 155 ILS/sqm" or "מחיר למ"ר: 82 ₪" → asking_rent_sqm: 155 or 82
-- "Management fee 22 ILS/sqm" or "דמי ניהול למ"ר: 18 ₪" → management_fee_sqm: 22 or 18
-- "מחיר לחנייה: 700 ₪" → parking option with price_monthly: 700
-- "800 ₪ צפה / 1,000 ₪ שמורה" → TWO parking options: {type: "open", price: 800} and {type: "reserved", price: 1000}
-- All prices are NIS per month unless stated otherwise
+BEHAVIOR BY DOCUMENT TYPE:
+
+**If floor_plan (lobby directory sign):**
+- Financial data: NONE expected. Maybe a phone number if "להשכרה" appears.
+- Contacts: only if a phone number is visible on the sign (e.g. 058-4449948 next to "להשכרה").
+- Amenities: NONE from a lobby sign.
+- Do NOT invent financial data for lobby signs.
+
+**If vacancy_listing:**
+- This is the RICHEST source for financial data. Look carefully for:
+  - Rent: in title or near "מחיר למ"ר" / "Rent X ILS/sqm"
+  - Management fee: near "דמי ניהול"
+  - Parking: near "חנייה" or "מחיר לחנייה"
+- Contacts are usually at the bottom (broker presenting the listing).
+- Amenities are mentioned in the building description.
+
+**If multi_building_catalog / broker_listing:**
+- Financial data per building. May be in tables.
+- Usually one or two contacts for the whole catalog.
+- Amenities vary per building.
+
+PRICING PATTERNS:
+- "Rent 155 ILS/sqm" or "מחיר למ"ר: 82 ₪" → asking_rent_sqm
+- "Management fee 22 ILS/sqm" or "דמי ניהול למ"ר: 18 ₪" → management_fee_sqm
+- "מחיר לחנייה: 700 ₪" → parking {type: "open", price_monthly: 700}
+- "800 ₪ צפה / 1,000 ₪ שמורה" → TWO options: open 800 + reserved 1000
+- All prices NIS per month unless stated otherwise
 
 TRANSIT:
-- "adjacent Israel Railways station" or "צמוד לתחנת רכבת" → distance_train_km: 0.1
-- "proximity to Red and Green Light Rail" or "קו ירוק של הרכבת הקלה" → distance_light_rail_km: 0.1
-- "7 דקות הליכה לתחנת רכבת" (7 min walk to train) → distance_train_km: 0.5
+- "adjacent to train" / "צמוד לתחנת רכבת" → distance_train_km: 0.1
+- "proximity to Light Rail" / "רכבת קלה" → distance_light_rail_km: 0.1
+- "7 min walk to train" / "7 דקות הליכה" → distance_train_km: 0.5
 
-CONTACTS — extract ALL contacts from the document:
-- Primary contact → contact_name, contact_phone, contact_email
-- Additional contacts → additional_contacts array
-- Israeli phone format: +972-XX-XXXXXXX or 05X-XXXXXXX
+CONTACTS (Israeli format):
+- Phone: +972-XX-XXXXXXX or 05X-XXXXXXX
+- Primary → contact_name/phone/email. Others → additional_contacts.
 
-AMENITIES — map to these exact values:
-- gym/fitness/חדר כושר → "gym"
-- lobby/לובי → "lobby_lounge"
-- restaurant/מסעדה → "restaurant"
-- cafe/בית קפה/קפה → "cafe"
-- auditorium/אודיטוריום → "conference_center"
-- security/24/7/אבטחה → note in building notes, not an amenity
-- retail/מסחר → "retail"
-- rooftop/גג → "rooftop_terrace"
-- EV charging/טעינה חשמלית → "ev_charging"
-- showers/מקלחות → "shower_rooms"
-- bike/אופניים → "bike_storage"`,
+AMENITIES (use ONLY these values):
+gym, lobby_lounge, restaurant, cafe, conference_center, retail, rooftop_terrace, ev_charging, shower_rooms, bike_storage, daycare, synagogue`,
   outputSchema: financialsSchema,
   outputKey: 'financials_data',
   includeContents: 'none',
