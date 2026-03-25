@@ -1,3 +1,3 @@
-import { pipeline } from './document-agent';
-
-export const rootAgent = pipeline;
+// ADK dev UI entry point (not used in production)
+// The production flow uses direct Gemini API calls, not ADK pipeline
+export const rootAgent = null;

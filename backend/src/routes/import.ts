@@ -1,16 +1,16 @@
 import { Hono } from 'hono';
 import { streamSSE } from 'hono/streaming';
-import { createRunner } from '../agents/document-agent';
+import { routeDocument, extractLobbySign, createVacancyRunner, type LobbySignResult } from '../agents/document-agent';
+import { stringifyContent } from '@google/adk';
+import { supabase } from '../lib/supabase';
+import { saveExtractionToDatabase } from '../lib/supabase-import';
 import { extractionResultSchema } from '../agents/schemas';
 import type { ExtractionResult } from '../agents/schemas';
-import { supabase } from '../lib/supabase';
-import { saveExtractionToDatabase, replaceBuildingWithExtraction, mergeBuildingWithExtraction } from '../lib/supabase-import';
 import { findDuplicates } from '../lib/duplicate-check';
-import { stringifyContent, isFinalResponse } from '@google/adk';
 
 const app = new Hono();
 
-// POST /import/process — Upload + AI extraction + duplicate detection
+// POST /import/process
 app.post('/process', async (c) => {
   const formData = await c.req.formData();
   const file = formData.get('file') as File | null;
@@ -19,7 +19,7 @@ app.post('/process', async (c) => {
     return c.json({ error: 'No file uploaded' }, 400);
   }
 
-  // Set headers to prevent proxy buffering (Railway, Cloudflare, nginx)
+  // Anti-buffering headers for Railway/proxies
   c.header('X-Accel-Buffering', 'no');
   c.header('Cache-Control', 'no-cache, no-transform');
 
@@ -28,13 +28,18 @@ app.post('/process', async (c) => {
       await stream.writeSSE({ event, data: JSON.stringify(data) });
     };
 
-    // Keep-alive: send a comment every 10s to prevent proxy timeout
+    // Keep-alive ping
     const keepAlive = setInterval(async () => {
-      try { await stream.writeSSE({ event: 'ping', data: '' }); } catch { /* stream closed */ }
+      try { await stream.writeSSE({ event: 'ping', data: '' }); } catch { /* closed */ }
     }, 10000);
 
     try {
-      await send('progress', { stage: 'uploading', message: `Received ${file.name} (${(file.size / 1024).toFixed(0)} KB)` });
+      await send('progress', { stage: 'uploading', message: 'Received file...', step: 1, total: 3 });
+
+      // Read file
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const base64 = buffer.toString('base64');
 
       // Check for duplicate document
       const { data: existingDocs } = await supabase
@@ -45,273 +50,163 @@ app.post('/process', async (c) => {
         .order('created_at', { ascending: false })
         .limit(1);
 
-      if (existingDocs && existingDocs.length > 0) {
-        const existing = existingDocs[0];
+      if (existingDocs?.length) {
         await send('warning', {
-          message: `This document was already uploaded on ${new Date(existing.created_at).toLocaleDateString()} (status: ${existing.ai_status})`,
-          existing_document_id: existing.id,
+          message: `Already uploaded on ${new Date(existingDocs[0].created_at).toLocaleDateString()} (${existingDocs[0].ai_status})`,
         });
       }
 
-      // Upload to Supabase Storage
-      const arrayBuffer = await file.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
+      // Upload to storage
       const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
       const storagePath = `imports/${Date.now()}_${safeName}`;
-
-      const { error: storageError } = await supabase.storage
-        .from('documents')
-        .upload(storagePath, buffer, { contentType: file.type });
-
-      if (storageError) {
-        await send('error', { message: `Storage upload failed: ${storageError.message}` });
-        return;
-      }
+      await supabase.storage.from('documents').upload(storagePath, buffer, { contentType: file.type });
 
       // Create document record
-      const { data: docRow, error: docError } = await supabase
+      const { data: docRow } = await supabase
         .from('documents')
-        .insert({
-          file_name: file.name,
-          file_type: file.type,
-          file_size_bytes: file.size,
-          storage_path: storagePath,
-          ai_status: 'processing',
-        })
+        .insert({ file_name: file.name, file_type: file.type, file_size_bytes: file.size, storage_path: storagePath, ai_status: 'processing' })
         .select('id')
         .single();
 
-      if (docError || !docRow) {
-        await send('error', { message: `Document record failed: ${docError?.message}` });
+      if (!docRow) {
+        await send('error', { message: 'Failed to create document record' });
         return;
       }
 
-      await send('progress', { stage: 'analyzing', message: 'Step 1/3: Classifying document...' });
+      // ── STEP 1: Route ──
+      await send('progress', { stage: 'routing', message: 'Identifying document type...', step: 1, total: 3 });
+      const docType = await routeDocument(base64, file.type);
+      console.log(`[ROUTER] ${file.name} → ${docType}`);
 
-      // Run the 3-step sequential pipeline
-      const runner = createRunner();
-      const base64Data = buffer.toString('base64');
+      if (docType === 'lobby_sign') {
+        // ── STEP 2: Extract lobby sign ──
+        await send('progress', { stage: 'extracting', message: 'Reading lobby sign...', step: 2, total: 3 });
+        const result = await extractLobbySign(base64, file.type);
+        console.log(`[EXTRACT] ${result.building_name} — ${result.floor_count} floors`);
 
-      const session = await runner.sessionService.createSession({
-        appName: 'stax-import',
-        userId: 'import-user',
-      });
+        // ── STEP 3: Check duplicates + return for preview ──
+        await send('progress', { stage: 'checking', message: 'Checking for duplicates...', step: 3, total: 3 });
 
-      let lastAuthor = '';
-      const agentLogs: { agent: string; timestamp: string; text: string }[] = [];
-      // Collect agent outputs directly from events as fallback
-      const agentOutputs: Record<string, string> = {};
+        // Convert to our standard extraction format for the frontend
+        const extraction = lobbySignToExtraction(result);
 
-      for await (const event of runner.runAsync({
-        userId: 'import-user',
-        sessionId: session.id,
-        newMessage: {
-          role: 'user',
-          parts: [
-            { text: 'Process this commercial real estate document. Classify it, extract all building data, and validate the results.' },
-            { inlineData: { data: base64Data, mimeType: file.type } },
-          ],
-        },
-      })) {
-        const author = event.author ?? '';
-        const eventText = stringifyContent(event);
+        const duplicates = await findDuplicates(extraction.buildings);
 
-        // Skip user messages, empty events, and garbage blobs
-        if (author === 'user' || !eventText || eventText.length < 2) continue;
-        if (eventText.length > 50000) {
-          console.log(`[SKIP] massive blob from ${author} (${eventText.length} chars)`);
-          continue;
+        // Save agent output to document
+        await supabase.from('documents').update({
+          ai_raw_output: { type: 'lobby_sign', result },
+          ai_model: 'gemini-3.1-flash-preview',
+          document_type: 'floor_plan',
+        }).eq('id', docRow.id);
+
+        if (duplicates.length > 0) {
+          await send('result', {
+            ...extraction,
+            _document_id: docRow.id,
+            _duplicates: duplicates,
+            _auto_saved: false,
+            _lobby_sign: result,
+          });
+        } else {
+          // Auto-save
+          await saveExtractionToDatabase(extraction, docRow.id);
+          await send('result', {
+            ...extraction,
+            _document_id: docRow.id,
+            _duplicates: [],
+            _auto_saved: true,
+            _lobby_sign: result,
+          });
         }
 
-        agentLogs.push({
-          agent: author,
-          timestamp: new Date().toISOString(),
-          text: eventText.slice(0, 5000),
-        });
-        agentOutputs[author] = eventText;
-        console.log(`[AGENT:${author}] (${eventText.length} chars): ${eventText.slice(0, 300)}${eventText.length > 300 ? '...' : ''}`);
+        await send('done', {});
 
-        if (author && author !== lastAuthor) {
-          lastAuthor = author;
-          const steps: Record<string, { step: number; total: number; message: string }> = {
-            parser: { step: 1, total: 4, message: 'Reading document...' },
-            classifier: { step: 2, total: 4, message: 'Identifying buildings...' },
-            buildings_extractor: { step: 3, total: 4, message: 'Extracting building data...' },
-            floors_extractor: { step: 4, total: 4, message: 'Extracting floors & units...' },
-          };
-          const stepInfo = steps[author];
-          if (stepInfo) {
-            console.log(`\n${'═'.repeat(60)}\n[STEP ${stepInfo.step}/${stepInfo.total}] ${author} starting...\n${'═'.repeat(60)}`);
-            await send('progress', {
-              stage: 'extracting',
-              message: stepInfo.message,
-              step: stepInfo.step,
-              total: stepInfo.total,
-            });
+      } else if (docType === 'vacancy_listing') {
+        // ── ADK 2-agent pipeline ──
+        await send('progress', { stage: 'extracting', message: 'Reading document...', step: 2, total: 5 });
+
+        const runner = createVacancyRunner();
+        const session = await runner.sessionService.createSession({ appName: 'stax-import', userId: 'import-user' });
+
+        const agentOutputs: Record<string, string> = {};
+        let lastAuthor = '';
+
+        for await (const event of runner.runAsync({
+          userId: 'import-user',
+          sessionId: session.id,
+          newMessage: {
+            role: 'user',
+            parts: [
+              { text: 'Extract all building and floor data from this vacancy listing.' },
+              { inlineData: { data: base64, mimeType: file.type } },
+            ],
+          },
+        })) {
+          const author = event.author ?? '';
+          const eventText = stringifyContent(event);
+          if (author && author !== 'user' && eventText && eventText.length < 50000) {
+            agentOutputs[author] = eventText;
+            console.log(`[AGENT:${author}] (${eventText.length} chars): ${eventText.slice(0, 300)}${eventText.length > 300 ? '...' : ''}`);
+          }
+          if (author && author !== lastAuthor) {
+            lastAuthor = author;
+            if (author === 'parser') await send('progress', { stage: 'extracting', message: 'Reading document...', step: 2, total: 5 });
+            if (author === 'buildings_counter') await send('progress', { stage: 'extracting', message: 'Identifying buildings...', step: 3, total: 5 });
+            if (author === 'floors_extractor') await send('progress', { stage: 'extracting', message: 'Extracting floors...', step: 4, total: 5 });
           }
         }
 
-        if (isFinalResponse(event) && author) {
-          await send('log', {
-            agent: author,
-            text: eventText.slice(0, 500),
-            timestamp: new Date().toISOString(),
-          });
+        // Read from session state
+        const updatedSession = await runner.sessionService.getSession({ appName: 'stax-import', userId: 'import-user', sessionId: session.id });
+        const buildingsRaw = updatedSession?.state['buildings_data'] || agentOutputs['buildings_counter'];
+        const floorsRaw = updatedSession?.state['floors_data'] || agentOutputs['floors_extractor'];
+
+        // Server-side merge
+        let buildingsParsed: { buildings: Record<string, unknown>[] } = { buildings: [] };
+        let floorsParsed: { buildings: Record<string, unknown>[] } = { buildings: [] };
+        try { buildingsParsed = JSON.parse(String(buildingsRaw).replace(/^```json?\n?/m, '').replace(/\n?```$/m, '').trim()); } catch {}
+        try { floorsParsed = JSON.parse(String(floorsRaw).replace(/^```json?\n?/m, '').replace(/\n?```$/m, '').trim()); } catch {}
+
+        const floorsMap = new Map<string, unknown[]>();
+        for (const fb of (floorsParsed.buildings || [])) {
+          const name = fb.name as string;
+          if (name) floorsMap.set(name.toLowerCase(), fb.floors as unknown[] || []);
         }
-      }
 
-      // Debug: log what each agent stored
-      console.log('\n' + '═'.repeat(60));
-      console.log('[DEBUG] Pipeline complete. Agent outputs:');
-      for (const [agent, output] of Object.entries(agentOutputs)) {
-        const preview = typeof output === 'string' ? output.slice(0, 200) : JSON.stringify(output).slice(0, 200);
-        console.log(`  ${agent}: ${preview}...`);
-      }
-      console.log('═'.repeat(60) + '\n');
+        const mergedBuildings = (buildingsParsed.buildings || []).map((b) => {
+          const name = (b.name as string || '').toLowerCase();
+          const floors = floorsMap.get(name) || [];
+          return { ...b, floors };
+        });
 
-      // Read results — try session state first, fallback to collected event outputs
-      let classificationRaw: unknown;
+        const extraction = {
+          document_type: 'vacancy_listing',
+          language: 'he',
+          buildings: mergedBuildings,
+        } as ExtractionResult;
 
-      const updatedSession = await runner.sessionService.getSession({
-        appName: 'stax-import',
-        userId: 'import-user',
-        sessionId: session.id,
-      });
+        await send('progress', { stage: 'checking', message: 'Checking duplicates...', step: 5, total: 5 });
+        const duplicates = await findDuplicates(extraction.buildings);
 
-      if (updatedSession) {
-        console.log('[DEBUG] Session state keys:', Object.keys(updatedSession.state));
-        classificationRaw = updatedSession.state['classification'] || agentOutputs['classifier'];
-      } else {
-        console.warn('[WARN] Session state not found, using event outputs');
-        classificationRaw = agentOutputs['classifier'];
-      }
-
-      // Get buildings and floors data (from state or event outputs)
-      const buildingsRaw = updatedSession?.state['buildings_data'] || agentOutputs['buildings_extractor'];
-      const floorsRaw = updatedSession?.state['floors_data'] || agentOutputs['floors_extractor'];
-
-      // SERVER-SIDE MERGE: combine buildings + floors into final result
-      // No AI needed — deterministic code merge
-      let classificationParsed: Record<string, unknown> = {};
-      try {
-        const raw = typeof classificationRaw === 'string' ? classificationRaw : JSON.stringify(classificationRaw);
-        classificationParsed = JSON.parse(raw.replace(/^```json?\n?/m, '').replace(/\n?```$/m, '').trim());
-      } catch { /* use defaults */ }
-
-      let buildingsParsed: { buildings: Record<string, unknown>[] } = { buildings: [] };
-      try {
-        const raw = typeof buildingsRaw === 'string' ? buildingsRaw : JSON.stringify(buildingsRaw);
-        buildingsParsed = JSON.parse(raw.replace(/^```json?\n?/m, '').replace(/\n?```$/m, '').trim());
-      } catch { /* empty */ }
-
-      let floorsParsed: { buildings: Record<string, unknown>[] } = { buildings: [] };
-      try {
-        const raw = typeof floorsRaw === 'string' ? floorsRaw : JSON.stringify(floorsRaw);
-        floorsParsed = JSON.parse(raw.replace(/^```json?\n?/m, '').replace(/\n?```$/m, '').trim());
-      } catch { /* empty */ }
-
-      // Merge floors into buildings by name
-      const floorsMap = new Map<string, unknown[]>();
-      for (const fb of (floorsParsed.buildings || [])) {
-        const name = fb.name as string;
-        if (name) floorsMap.set(name.toLowerCase(), fb.floors as unknown[] || []);
-      }
-
-      const mergedBuildings = (buildingsParsed.buildings || []).map((b) => {
-        const name = (b.name as string || '').toLowerCase();
-        const floors = floorsMap.get(name) || [];
-        return { ...b, floors };
-      });
-
-      // Build the final extraction result
-      const extractionRaw = JSON.stringify({
-        document_type: classificationParsed.document_type || 'other',
-        language: (classificationParsed.language as string || 'he').toLowerCase(),
-        buildings: mergedBuildings,
-      });
-
-      console.log(`[MERGE] ${mergedBuildings.length} buildings merged, sending to frontend`);
-
-      if (mergedBuildings.length === 0) {
-        await send('error', { message: 'No buildings extracted from the document.' });
         await supabase.from('documents').update({
-          ai_status: 'failed',
-          ai_raw_output: { classification: classificationRaw, agent_logs: agentLogs, agent_outputs: agentOutputs },
+          ai_raw_output: { type: 'vacancy_listing', buildings: agentOutputs['buildings_counter'], floors: agentOutputs['floors_extractor'] },
+          ai_model: 'gemini-3.1-flash-preview',
+          document_type: 'vacancy_listing',
         }).eq('id', docRow.id);
-        return;
-      }
 
-      // Parse the server-merged result
-      const extractionParsed = JSON.parse(extractionRaw);
-      const extractionValidation = extractionResultSchema.safeParse(extractionParsed);
-      if (!extractionValidation.success) {
-        // Lenient: accept if it has buildings array even if Zod fails
-        if (Array.isArray(extractionParsed.buildings) && extractionParsed.buildings.length > 0) {
-          console.warn('[WARN] Zod validation failed but buildings exist, proceeding');
+        if (duplicates.length > 0) {
+          await send('result', { ...extraction, _document_id: docRow.id, _duplicates: duplicates, _auto_saved: false });
         } else {
-          await send('error', { message: `Validation failed: ${extractionValidation.error.message}` });
-          await supabase.from('documents').update({
-            ai_status: 'review_needed',
-            ai_raw_output: extractionParsed,
-          }).eq('id', docRow.id);
-          return;
+          await saveExtractionToDatabase(extraction, docRow.id);
+          await send('result', { ...extraction, _document_id: docRow.id, _duplicates: [], _auto_saved: true });
         }
-      }
 
-      // Use validated data if available, otherwise use raw parsed data
-      let result = extractionValidation.success
-        ? extractionValidation.data
-        : extractionParsed as ExtractionResult;
+        await send('done', {});
 
-      // Save all agent logs
-      await supabase.from('documents').update({
-        ai_raw_output: {
-          classification: classificationRaw,
-          buildings: agentOutputs['buildings_extractor'],
-          floors: agentOutputs['floors_extractor'],
-          merged: extractionRaw,
-          agent_logs: agentLogs,
-        },
-        ai_model: 'gemini-3.1-flash-preview',
-      }).eq('id', docRow.id);
-
-      await send('progress', {
-        stage: 'checking',
-        message: `Found ${result.buildings.length} building(s). Checking for duplicates...`,
-      });
-
-      // Check for duplicates
-      const duplicates = await findDuplicates(result.buildings);
-
-      if (duplicates.length > 0) {
-        await send('result', {
-          ...result,
-          _classification: classificationRaw,
-          _document_id: docRow.id,
-          _duplicates: duplicates,
-          _auto_saved: false,
-          _agent_logs: agentLogs,
-        });
       } else {
-        await send('progress', {
-          stage: 'saving',
-          message: `No duplicates found. Saving ${result.buildings.length} building(s)...`,
-        });
-
-        const saveResult = await saveExtractionToDatabase(result, docRow.id);
-
-        await send('result', {
-          ...result,
-          _classification: classificationRaw,
-          _document_id: docRow.id,
-          _duplicates: [],
-          _auto_saved: true,
-          _db: saveResult,
-          _agent_logs: agentLogs,
-        });
+        await send('error', { message: 'Unrecognized document type. Please upload a photo of a building lobby directory sign.' });
       }
 
-      await send('done', {});
     } catch (err) {
       console.error('[IMPORT ERROR]', err);
       await send('error', { message: err instanceof Error ? err.message : 'Unknown error' });
@@ -321,43 +216,58 @@ app.post('/process', async (c) => {
   });
 });
 
-// POST /import/save — Phase 2: save with broker decisions
-type SaveAction = 'insert' | 'replace' | 'merge' | 'skip';
+// Convert lobby sign result to our standard ExtractionResult format
+function lobbySignToExtraction(sign: LobbySignResult): ExtractionResult {
+  return {
+    document_type: 'floor_plan',
+    language: sign.building_name ? 'he' : 'en',
+    buildings: [{
+      name: sign.building_name || sign.building_name_en || 'Unknown Building',
+      name_en: sign.building_name_en,
+      address: sign.address || undefined,
+      city: sign.city || undefined,
+      city_en: sign.city_en || undefined,
+      class: undefined,
+      floor_count: sign.floor_count || undefined,
+      floors: sign.floors.map((f) => ({
+        floor_number: parseInt(f.floor_number) || 0,
+        total_sqm: 0,
+        blocks: f.tenants.map((tenant) => ({
+          tenant_name: f.has_vacancy && tenant.includes('להשכרה') ? undefined : tenant,
+          sqm: 0,
+          status: (f.has_vacancy && tenant.includes('להשכרה') ? 'vacant' : 'occupied') as 'vacant' | 'occupied',
+        })),
+      })),
+      _confidence: 0.9,
+    }],
+  };
+}
 
+// POST /import/save — save with broker decisions
 app.post('/save', async (c) => {
   try {
     const body = await c.req.json<{
       document_id: string;
       extraction: ExtractionResult;
-      decisions: { extracted_index: number; action: SaveAction; existing_id?: string }[];
+      decisions: { extracted_index: number; action: string; existing_id?: string }[];
     }>();
 
     const { document_id, extraction, decisions } = body;
-
     if (!document_id || !extraction || !decisions) {
-      return c.json({ error: 'Missing required fields' }, 400);
+      return c.json({ error: 'Missing fields' }, 400);
     }
 
-    const decisionMap = new Map<number, { action: SaveAction; existing_id?: string }>();
-    for (const d of decisions) {
-      decisionMap.set(d.extracted_index, { action: d.action, existing_id: d.existing_id });
-    }
+    const { saveExtractionToDatabase, replaceBuildingWithExtraction, mergeBuildingWithExtraction } = await import('../lib/supabase-import');
 
-    const results = {
-      inserted: [] as string[],
-      replaced: [] as string[],
-      merged: [] as string[],
-      skipped: [] as string[],
-    };
-
-    const buildingsToAutoInsert: typeof extraction.buildings = [];
+    const results = { inserted: [] as string[], replaced: [] as string[], merged: [] as string[], skipped: [] as string[] };
+    const toInsert: typeof extraction.buildings = [];
 
     for (let i = 0; i < extraction.buildings.length; i++) {
       const building = extraction.buildings[i];
-      const decision = decisionMap.get(i);
+      const decision = decisions.find((d) => d.extracted_index === i);
 
       if (!decision || decision.action === 'insert') {
-        buildingsToAutoInsert.push(building);
+        toInsert.push(building);
         results.inserted.push(building.name);
       } else if (decision.action === 'replace' && decision.existing_id) {
         await replaceBuildingWithExtraction(decision.existing_id, building, document_id);
@@ -365,16 +275,13 @@ app.post('/save', async (c) => {
       } else if (decision.action === 'merge' && decision.existing_id) {
         await mergeBuildingWithExtraction(decision.existing_id, building, document_id);
         results.merged.push(building.name);
-      } else if (decision.action === 'skip') {
+      } else {
         results.skipped.push(building.name);
       }
     }
 
-    if (buildingsToAutoInsert.length > 0) {
-      await saveExtractionToDatabase(
-        { ...extraction, buildings: buildingsToAutoInsert },
-        document_id
-      );
+    if (toInsert.length > 0) {
+      await saveExtractionToDatabase({ ...extraction, buildings: toInsert }, document_id);
     }
 
     await supabase.from('documents').update({
