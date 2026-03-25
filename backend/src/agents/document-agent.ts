@@ -13,90 +13,47 @@ const FLASH = 'gemini-3.1-flash-lite-preview';
 const parserSchema: Schema = {
   type: Type.OBJECT,
   properties: {
-    page_count: { type: Type.INTEGER },
-    full_text: { type: Type.STRING, description: 'Complete document text with ---PAGE N--- separators' },
-    tables: {
-      type: Type.ARRAY,
-      items: {
-        type: Type.OBJECT,
-        properties: {
-          page: { type: Type.INTEGER },
-          description: { type: Type.STRING },
-          data: { type: Type.STRING, description: 'Pipe-separated table rows' },
-        },
-      },
-    },
-    images_described: {
-      type: Type.ARRAY,
-      items: {
-        type: Type.OBJECT,
-        properties: {
-          page: { type: Type.INTEGER },
-          description: { type: Type.STRING },
-        },
-      },
-    },
-    contacts: {
-      type: Type.ARRAY,
-      items: {
-        type: Type.OBJECT,
-        properties: {
-          name: { type: Type.STRING },
-          title: { type: Type.STRING },
-          phone: { type: Type.STRING },
-          email: { type: Type.STRING },
-        },
-      },
-    },
+    page_count: { type: Type.INTEGER, description: 'Number of pages' },
+    document_type: { type: Type.STRING, description: 'What kind of document: vacancy listing, brochure, catalog, lobby sign photo, floor plan, etc.' },
+    summary: { type: Type.STRING, description: 'One paragraph summary of the entire document' },
+    full_text: { type: Type.STRING, description: 'ALL text from every page. Separate pages with ---PAGE N---. Include every number, name, address, price, date, phone, email. For images: describe what you see in [IMAGE: description] tags.' },
   },
-  required: ['page_count', 'full_text'],
+  required: ['page_count', 'document_type', 'summary', 'full_text'],
 };
 
 const parserAgent = new LlmAgent({
   name: 'parser',
   model: FLASH,
-  instruction: `You are a document OCR/parser for Israeli commercial real estate documents.
+  instruction: `Read the uploaded document and output ALL of its text content.
 
-YOUR ONLY JOB: Read the entire uploaded document and dump ALL content as structured text. Do not analyze, interpret, or summarize — just extract faithfully.
+You are reading a commercial real estate document from Israel. It could be:
+- A PDF with text about buildings, offices, pricing
+- A photo of a building lobby directory sign showing tenants per floor
+- A floor plan image
+- A multi-page catalog or newsletter
 
-CRITICAL PATTERNS IN ISRAELI CRE DOCUMENTS:
-1. Numbers near "מ"ר" or "sqm" are AREAS in square meters
-2. Numbers near "₪" or "ש״ח" or "ILS" are PRICES in Israeli Shekels
-3. Numbers formatted as "XX ₪" next to labels like "מחיר למ"ר" (price per sqm), "דמי ניהול" (management fee), "חנייה" (parking) are per-sqm monthly rates
-4. Hebrew dates: "30/6/28" means June 30, 2028. "יוני 2027" means June 2027.
-5. Contact blocks often have: name, title, mobile number (+972-XX-XXXXXXX), email
-6. Building class appears as a single letter: A+, A, B, C — sometimes in a small badge or label
-7. Floor numbers: "קומה 11" = floor 11, "20th Floor" = floor 20
-8. "שכירות משנה" or "יחידה בשכירות משנה" = this is a SUBLEASE listing
-9. Availability: "זמינות מיידית" or "אכלוס מיידי" = available immediately
+YOUR OUTPUT must contain:
+1. document_type: what kind of document this is
+2. summary: one paragraph describing the document
+3. page_count: number of pages
+4. full_text: ALL text from every page, organized as:
 
-LOBBY DIRECTORY SIGNS (very common — photos taken by brokers):
-10. These are photos of building lobby signs showing tenant names per floor
-11. Format: floor number (קומה X or just a number) next to company names/logos
-12. Read TOP to BOTTOM. Each row = one floor. Company names/logos = tenants on that floor.
-13. The building name is usually at the top of the sign (e.g. "גלגלי הפלדה 11", "בית REIT 1 הרצליה")
-14. If a company name appears on multiple floors, they occupy all those floors
-15. "כניסה א/ב" or "Entrance A/B" means the building has multiple entrances — each entrance is the SAME building
-16. "משרד להשכרה" next to a floor = that floor has space for lease (vacant)
-17. Phone numbers on the sign (like 058-XXXXXXX) are leasing contacts
-18. Example: A sign showing "קומה 4: Sigalit | קומה 2: GENEVX, edgeconnex | קומה 1: MEDCu, Otech"
-    = 4 floors, floor 4 has Sigalit, floor 2 has GENEVX + edgeconnex, floor 1 has MEDCu + Otech
+---PAGE 1---
+[all text from page 1, preserving structure]
 
-FLOOR PLANS (architectural drawings):
-19. These are blueprint/layout images of a single floor
-20. Extract: which floor, approximate sqm if shown, room labels, any tenant names marked
-21. Note the layout type: open plan, cellular offices, mix
+---PAGE 2---
+[all text from page 2]
 
-EXTRACTION RULES:
-- Read EVERY page cover to cover
-- Preserve ALL numbers exactly as written
-- For tables and visual layouts: extract as pipe-separated data (column|column|column)
-- For lobby directory signs: extract as "Floor N: Company1, Company2" format — one line per floor
-- For floor plan images: describe layout, note any room labels or measurements
-- For building exterior photos: note the building name if visible
-- For contacts: extract name, title, every phone number, every email
-- Separate pages with ---PAGE N---
-- Include title lines, headers, small print, footnotes — EVERYTHING`,
+For PHOTOS of lobby signs, describe each floor:
+Floor 4: Company A, Company B
+Floor 3: Company C
+Floor 2: Company D, Company E (משרד להשכרה = for rent)
+Floor 1: Company F
+
+For IMAGES (floor plans, building photos), describe them:
+[IMAGE: Floor plan showing open office layout, approximately 760 sqm, with meeting rooms on the west side]
+
+CRITICAL: Include EVERY number, price (₪), area (מ"ר/sqm), date, phone number, email, and name you see. Do NOT output base64 data or binary content. Output only human-readable text.`,
   outputSchema: parserSchema,
   outputKey: 'parsed_content',
   includeContents: 'default',
