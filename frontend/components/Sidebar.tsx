@@ -36,7 +36,7 @@ export default function Sidebar({ buildings }: Props) {
       <div className="px-5 pt-7 pb-6">
         <Link href="/" className="block group">
           <div className="flex items-center gap-2.5">
-            <Image src="/logo.png" alt="STAX" width={28} height={28} className="invert" />
+            <Image src="/logo.png" alt="STAX" width={28} height={28} className="dark:invert" />
             <div>
               <h1 className="text-lg font-semibold tracking-tight">{t("common.stax")}</h1>
               <p className="text-xs text-muted-foreground tracking-[0.15em] uppercase">{t("common.tagline")}</p>

@@ -4,6 +4,7 @@ import { getMessages, setRequestLocale } from "next-intl/server"
 import { notFound } from "next/navigation"
 import { routing } from "@/i18n/routing"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { ThemeProvider } from "@/components/ThemeProvider"
 import "../globals.css"
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -47,12 +48,14 @@ export default async function LocaleLayout({
   const dir = locale === "he" ? "rtl" : "ltr"
 
   return (
-    <html lang={locale} dir={dir} className="dark">
+    <html lang={locale} dir={dir} suppressHydrationWarning>
       <body className={`${plusJakartaSans.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable} antialiased`}>
         <NextIntlClientProvider messages={messages}>
-          <TooltipProvider>
-            {children}
-          </TooltipProvider>
+          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+            <TooltipProvider>
+              {children}
+            </TooltipProvider>
+          </ThemeProvider>
         </NextIntlClientProvider>
       </body>
     </html>

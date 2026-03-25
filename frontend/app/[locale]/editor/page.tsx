@@ -10,6 +10,7 @@ import { formatSqm } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { Plus, Trash2 } from "lucide-react"
 import LanguageSwitcher from "@/components/LanguageSwitcher"
+import ThemeToggle from "@/components/ThemeToggle"
 
 function generateId() {
   return Math.random().toString(36).slice(2, 9)
@@ -113,7 +114,10 @@ export default function EditorPage() {
               <h1 className="text-3xl font-display tracking-tight">{t("title")}</h1>
               <p className="text-sm text-muted-foreground mt-1.5">{t("subtitle")}</p>
             </div>
-            <LanguageSwitcher />
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <LanguageSwitcher />
+            </div>
           </div>
 
           <div className="flex gap-6">

@@ -13,6 +13,7 @@ import { formatSqm, formatPrice } from "@/lib/utils"
 import { LayoutGrid, List, ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import LanguageSwitcher from "@/components/LanguageSwitcher"
+import ThemeToggle from "@/components/ThemeToggle"
 
 export default function BuildingsPage() {
   const t = useTranslations("buildingsPage")
@@ -72,7 +73,7 @@ export default function BuildingsPage() {
                             "w-full text-start px-4 py-2 text-sm transition-colors",
                             city === "all"
                               ? "text-primary font-medium"
-                              : "text-muted-foreground hover:text-foreground hover:bg-white/[0.04]"
+                              : "text-muted-foreground hover:text-foreground hover:bg-foreground/[0.04]"
                           )}
                         >
                           {locale === "he" ? "כל הערים" : "All Cities"}
@@ -85,7 +86,7 @@ export default function BuildingsPage() {
                               "w-full text-start px-4 py-2 text-sm transition-colors",
                               city === c.city
                                 ? "text-primary font-medium"
-                                : "text-muted-foreground hover:text-foreground hover:bg-white/[0.04]"
+                                : "text-muted-foreground hover:text-foreground hover:bg-foreground/[0.04]"
                             )}
                           >
                             {locale === "he" ? c.city : (c.city_en || c.city)}
@@ -100,6 +101,7 @@ export default function BuildingsPage() {
               </div>
             </div>
             <div className="flex items-center gap-3">
+            <ThemeToggle />
             <LanguageSwitcher />
             {/* View toggle */}
             <div className="flex items-center gap-1 glass rounded-full p-1">
@@ -162,7 +164,7 @@ export default function BuildingsPage() {
                       <tr
                         key={b.id}
                         onClick={() => setSelectedBuilding(b)}
-                        className="border-b border-border/50 cursor-pointer hover:bg-white/[0.03] transition-colors"
+                        className="border-b border-border/50 cursor-pointer hover:bg-foreground/[0.03] transition-colors"
                       >
                         <td className="px-5 py-4">
                           <div className="font-medium text-sm">{locale === "he" ? b.name : b.nameEn}</div>

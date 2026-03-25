@@ -4,6 +4,7 @@ import { useState, useRef, useCallback } from "react"
 import { useTranslations, useLocale } from "next-intl"
 import Sidebar from "@/components/Sidebar"
 import LanguageSwitcher from "@/components/LanguageSwitcher"
+import ThemeToggle from "@/components/ThemeToggle"
 import { Button } from "@/components/ui/button"
 import { useBuildings } from "@/lib/hooks/useBuildings"
 import {
@@ -235,7 +236,10 @@ export default function ImportPage() {
               <h1 className="text-3xl font-display tracking-tight">{t("title")}</h1>
               <p className="text-sm text-muted-foreground mt-1.5">{t("subtitle")}</p>
             </div>
-            <LanguageSwitcher />
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <LanguageSwitcher />
+            </div>
           </div>
 
           <div className="grid lg:grid-cols-[1fr_340px] gap-6">

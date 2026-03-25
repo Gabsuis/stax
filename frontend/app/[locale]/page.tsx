@@ -7,6 +7,7 @@ import { useBuildings } from "@/lib/hooks/useBuildings"
 import { getLeaseColor } from "@/lib/leaseColors"
 import { ArrowLeft, ArrowRight } from "lucide-react"
 import LanguageSwitcher from "@/components/LanguageSwitcher"
+import ThemeToggle from "@/components/ThemeToggle"
 import { Button } from "@/components/ui/button"
 import { useLocale } from "next-intl"
 import { useState, useEffect } from "react"
@@ -102,8 +103,8 @@ function HeroStack() {
                       minWidth: "6px",
                       ...(isVacant
                         ? {
-                            background: "rgba(255,255,255,0.04)",
-                            border: "1px dashed rgba(255,255,255,0.15)",
+                            background: "var(--color-vacant-bg, rgba(0,0,0,0.04))",
+                            border: "1px dashed var(--color-vacant-border, rgba(0,0,0,0.15))",
                           }
                         : {
                             background: `linear-gradient(135deg, ${color}20, ${color}0c)`,
@@ -112,7 +113,7 @@ function HeroStack() {
                     }}
                   >
                     {pct > 25 && !isVacant && (
-                      <span className="text-xs text-white/60 truncate px-2 font-medium">{block.tenantName}</span>
+                      <span className="text-xs text-foreground/60 truncate px-2 font-medium">{block.tenantName}</span>
                     )}
                   </motion.div>
                 )
@@ -153,11 +154,12 @@ export default function LandingPage() {
       >
         <div className="max-w-7xl mx-auto px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Image src="/logo.png" alt="STAX" width={24} height={24} className="invert" />
+            <Image src="/logo.png" alt="STAX" width={24} height={24} className="dark:invert" />
             <span className="text-sm font-medium tracking-tight">{t("common.stax")}</span>
             <span className="text-xs text-muted-foreground uppercase tracking-[0.2em]">{t("common.version")}</span>
           </div>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <LanguageSwitcher />
             <Button variant="ghost" size="sm">
               {t("nav.login")}
@@ -230,7 +232,7 @@ export default function LandingPage() {
                 </Link>
                 <Link
                   href="/editor"
-                  className="inline-flex items-center gap-2 glass px-7 py-3 rounded-full text-sm font-medium hover:bg-white/[0.06] transition-all"
+                  className="inline-flex items-center gap-2 glass px-7 py-3 rounded-full text-sm font-medium hover:bg-foreground/[0.06] transition-all"
                 >
                   {t("landing.ctaEditor")}
                 </Link>
@@ -399,7 +401,7 @@ export default function LandingPage() {
       <footer className="border-t border-border py-10 px-8">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <Image src="/logo.png" alt="STAX" width={16} height={16} className="invert opacity-60" />
+            <Image src="/logo.png" alt="STAX" width={16} height={16} className="dark:invert opacity-60" />
             <span className="text-xs text-muted-foreground">{t("common.stax")} · {t("common.tagline")}</span>
           </div>
           <div className="text-xs text-muted-foreground uppercase tracking-[0.15em]">{t("common.demo")}</div>

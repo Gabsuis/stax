@@ -12,6 +12,7 @@ import BuildingModal from "@/components/BuildingModal"
 import { differenceInMonths } from "date-fns"
 import { Phone, Target, AlertTriangle, TrendingUp, ArrowRight, ArrowLeft, Sparkles, Building2, Clock } from "lucide-react"
 import LanguageSwitcher from "@/components/LanguageSwitcher"
+import ThemeToggle from "@/components/ThemeToggle"
 
 interface ActionItem {
   type: "call" | "pitch"
@@ -138,7 +139,10 @@ export default function DashboardPage() {
                 {t("subtitle", { count: buildings.length })}
               </p>
             </div>
-            <LanguageSwitcher />
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <LanguageSwitcher />
+            </div>
           </div>
 
           {/* Stats Strip */}
@@ -163,7 +167,7 @@ export default function DashboardPage() {
                   <div
                     key={`${action.type}-${action.building.id}-${action.tenantName}-${i}`}
                     onClick={() => setSelectedBuilding(action.building)}
-                    className="flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-white/[0.03] cursor-pointer transition-colors group border border-transparent hover:border-border/50"
+                    className="flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-foreground/[0.03] cursor-pointer transition-colors group border border-transparent hover:border-border/50"
                   >
                     {/* Priority dot */}
                     <div className={`w-2 h-2 rounded-full shrink-0 ${priorityDots[action.priority]}`} />
@@ -222,7 +226,7 @@ export default function DashboardPage() {
                     <div
                       key={alert.building.id}
                       onClick={() => setSelectedBuilding(alert.building)}
-                      className="flex items-center justify-between px-3 py-3 rounded-lg hover:bg-white/[0.03] cursor-pointer transition-colors"
+                      className="flex items-center justify-between px-3 py-3 rounded-lg hover:bg-foreground/[0.03] cursor-pointer transition-colors"
                     >
                       <div className="min-w-0">
                         <div className="text-sm font-medium truncate">{locale === "he" ? alert.building.name : alert.building.nameEn}</div>
@@ -254,7 +258,7 @@ export default function DashboardPage() {
                     <div
                       key={`${lease.building.id}-${lease.tenantName}-${i}`}
                       onClick={() => setSelectedBuilding(lease.building)}
-                      className="flex items-center justify-between px-3 py-3 rounded-lg hover:bg-white/[0.03] cursor-pointer transition-colors"
+                      className="flex items-center justify-between px-3 py-3 rounded-lg hover:bg-foreground/[0.03] cursor-pointer transition-colors"
                     >
                       <div className="min-w-0">
                         <div className="text-sm font-medium truncate">{lease.tenantName}</div>
