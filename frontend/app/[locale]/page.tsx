@@ -39,7 +39,8 @@ function useTypewriter(text: string, speed = 70, delay = 800) {
 /* ── Hero stacking plan visualization ── */
 function HeroStack() {
   const { buildings } = useBuildings()
-  const building = buildings[0]
+  // Pick the building with the most floors for a rich hero visualization
+  const building = [...buildings].sort((a, b) => b.floors.length - a.floors.length)[0]
   const reversedFloors = [...building.floors].reverse()
 
   // Flatten all blocks to assign a global stagger index
