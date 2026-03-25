@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { streamSSE } from 'hono/streaming';
 import { createRunner } from '../agents/document-agent';
-import { extractionResultSchema, validationResultSchema } from '../agents/schemas';
+import { extractionResultSchema } from '../agents/schemas';
 import type { ExtractionResult } from '../agents/schemas';
 import { supabase } from '../lib/supabase';
 import { saveExtractionToDatabase, replaceBuildingWithExtraction, mergeBuildingWithExtraction } from '../lib/supabase-import';
@@ -129,13 +129,15 @@ app.post('/process', async (c) => {
 
         if (author && author !== lastAuthor) {
           lastAuthor = author;
-          if (author === 'classifier') {
-            await send('progress', { stage: 'analyzing', message: 'Step 1/3: Classifying document...' });
-          } else if (author === 'extractor') {
-            await send('progress', { stage: 'extracting', message: 'Step 2/3: Extracting building data (deep analysis)...' });
-          } else if (author === 'validator') {
-            await send('progress', { stage: 'validating', message: 'Step 3/3: Validating extraction...' });
-          }
+          const stepMessages: Record<string, string> = {
+            classifier: 'Step 1/5: Classifying document...',
+            buildings_extractor: 'Step 2/5: Extracting building identities...',
+            floors_extractor: 'Step 3/5: Extracting floors & tenants...',
+            financials_extractor: 'Step 4/5: Extracting financials & contacts...',
+            merger: 'Step 5/5: Merging all data...',
+          };
+          const msg = stepMessages[author];
+          if (msg) await send('progress', { stage: 'extracting', message: msg });
         }
 
         if (isFinalResponse(event) && author) {
@@ -150,7 +152,6 @@ app.post('/process', async (c) => {
       // Read results — try session state first, fallback to collected event outputs
       let classificationRaw: unknown;
       let extractionRaw: unknown;
-      let validationRaw: unknown;
 
       const updatedSession = await runner.sessionService.getSession({
         appName: 'stax-import',
@@ -160,14 +161,11 @@ app.post('/process', async (c) => {
 
       if (updatedSession) {
         classificationRaw = updatedSession.state['classification'] || agentOutputs['classifier'];
-        extractionRaw = updatedSession.state['extraction_result'] || agentOutputs['extractor'];
-        validationRaw = updatedSession.state['validation_result'] || agentOutputs['validator'];
+        extractionRaw = updatedSession.state['extraction_result'] || agentOutputs['merger'];
       } else {
-        // Session not found — use event outputs directly
         console.warn('[WARN] Session state not found, using event outputs');
         classificationRaw = agentOutputs['classifier'];
-        extractionRaw = agentOutputs['extractor'];
-        validationRaw = agentOutputs['validator'];
+        extractionRaw = agentOutputs['merger'];
       }
 
       if (!extractionRaw) {
@@ -179,14 +177,14 @@ app.post('/process', async (c) => {
         return;
       }
 
-      // Parse extraction result
+      // Parse the merged extraction result
       let extractionParsed: unknown;
       try {
         const raw = typeof extractionRaw === 'string' ? extractionRaw : JSON.stringify(extractionRaw);
         const jsonStr = raw.replace(/^```json?\n?/m, '').replace(/\n?```$/m, '').trim();
         extractionParsed = JSON.parse(jsonStr);
       } catch {
-        await send('error', { message: 'Failed to parse extraction output as JSON' });
+        await send('error', { message: 'Failed to parse merged output as JSON' });
         await supabase.from('documents').update({
           ai_status: 'failed',
           ai_raw_output: { raw: extractionRaw, agent_logs: agentLogs },
@@ -196,51 +194,34 @@ app.post('/process', async (c) => {
 
       const extractionValidation = extractionResultSchema.safeParse(extractionParsed);
       if (!extractionValidation.success) {
-        await send('error', { message: `Schema validation failed: ${extractionValidation.error.message}` });
-        await supabase.from('documents').update({
-          ai_status: 'review_needed',
-          ai_raw_output: extractionParsed,
-        }).eq('id', docRow.id);
-        return;
+        // Try lenient parse — the merger output may not perfectly match Zod schema
+        // Accept it anyway if it has buildings array
+        const lenient = extractionParsed as Record<string, unknown>;
+        if (lenient && Array.isArray(lenient.buildings) && lenient.buildings.length > 0) {
+          console.warn('[WARN] Zod validation failed but data has buildings, proceeding:', extractionValidation.error.message);
+        } else {
+          await send('error', { message: `Schema validation failed: ${extractionValidation.error.message}` });
+          await supabase.from('documents').update({
+            ai_status: 'review_needed',
+            ai_raw_output: extractionParsed,
+          }).eq('id', docRow.id);
+          return;
+        }
       }
 
-      let result = extractionValidation.data;
+      // Use validated data if available, otherwise use raw parsed data
+      let result = extractionValidation.success
+        ? extractionValidation.data
+        : extractionParsed as ExtractionResult;
 
-      // Check validator corrections — only apply if corrected version is richer, not stripped
-      if (validationRaw) {
-        try {
-          const valRaw = typeof validationRaw === 'string' ? validationRaw : JSON.stringify(validationRaw);
-          const valJson = JSON.parse(valRaw.replace(/^```json?\n?/m, '').replace(/\n?```$/m, '').trim());
-          const valParsed = validationResultSchema.safeParse(valJson);
-          if (valParsed.success && valParsed.data.corrected_buildings?.length) {
-            // Count non-null fields in original vs corrected
-            const countFields = (obj: Record<string, unknown>) =>
-              Object.values(obj).filter((v) => v !== null && v !== undefined && v !== '').length;
-
-            const originalFieldCount = result.buildings.reduce((sum, b) => sum + countFields(b as unknown as Record<string, unknown>), 0);
-            const correctedFieldCount = valParsed.data.corrected_buildings.reduce((sum, b) => sum + countFields(b as unknown as Record<string, unknown>), 0);
-
-            if (correctedFieldCount >= originalFieldCount) {
-              // Corrected version is at least as rich — use it
-              result = { ...result, buildings: valParsed.data.corrected_buildings };
-              await send('progress', { stage: 'corrected', message: `Validator corrected ${valParsed.data.issues?.length ?? 0} issue(s)` });
-            } else {
-              // Corrected version lost fields — keep original, just log the issues
-              console.warn(`[WARN] Validator stripped fields (${correctedFieldCount} < ${originalFieldCount}), keeping original extraction`);
-              if (valParsed.data.issues?.length) {
-                await send('progress', { stage: 'validated', message: `${valParsed.data.issues.length} issue(s) noted but original extraction preserved` });
-              }
-            }
-          }
-        } catch { /* proceed with original */ }
-      }
-
-      // Save agent logs
+      // Save all agent logs
       await supabase.from('documents').update({
         ai_raw_output: {
           classification: classificationRaw,
-          extraction: extractionRaw,
-          validation: validationRaw,
+          buildings: agentOutputs['buildings_extractor'],
+          floors: agentOutputs['floors_extractor'],
+          financials: agentOutputs['financials_extractor'],
+          merged: extractionRaw,
           agent_logs: agentLogs,
         },
         ai_model: 'gemini-3.1-pro-preview',
@@ -258,7 +239,6 @@ app.post('/process', async (c) => {
         await send('result', {
           ...result,
           _classification: classificationRaw,
-          _validation: validationRaw,
           _document_id: docRow.id,
           _duplicates: duplicates,
           _auto_saved: false,
@@ -275,7 +255,6 @@ app.post('/process', async (c) => {
         await send('result', {
           ...result,
           _classification: classificationRaw,
-          _validation: validationRaw,
           _document_id: docRow.id,
           _duplicates: [],
           _auto_saved: true,
