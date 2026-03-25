@@ -19,10 +19,19 @@ app.post('/process', async (c) => {
     return c.json({ error: 'No file uploaded' }, 400);
   }
 
+  // Set headers to prevent proxy buffering (Railway, Cloudflare, nginx)
+  c.header('X-Accel-Buffering', 'no');
+  c.header('Cache-Control', 'no-cache, no-transform');
+
   return streamSSE(c, async (stream) => {
     const send = async (event: string, data: unknown) => {
       await stream.writeSSE({ event, data: JSON.stringify(data) });
     };
+
+    // Keep-alive: send a comment every 10s to prevent proxy timeout
+    const keepAlive = setInterval(async () => {
+      try { await stream.writeSSE({ event: 'ping', data: '' }); } catch { /* stream closed */ }
+    }, 10000);
 
     try {
       await send('progress', { stage: 'uploading', message: `Received ${file.name} (${(file.size / 1024).toFixed(0)} KB)` });
@@ -277,7 +286,10 @@ app.post('/process', async (c) => {
 
       await send('done', {});
     } catch (err) {
+      console.error('[IMPORT ERROR]', err);
       await send('error', { message: err instanceof Error ? err.message : 'Unknown error' });
+    } finally {
+      clearInterval(keepAlive);
     }
   });
 });
