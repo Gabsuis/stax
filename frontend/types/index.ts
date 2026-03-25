@@ -122,7 +122,7 @@ export interface Building {
   address: string
   city?: string
   cityEn?: string
-  area: "צפון" | "מרכז" | "דרום" | "" | AreaRegion
+  area: AreaRegion | ""
   class: BuildingClass
   floorCount: number
   floorSize: number

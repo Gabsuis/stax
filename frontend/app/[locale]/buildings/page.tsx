@@ -19,8 +19,15 @@ import { BuildingsTableSkeleton, BuildingsCardsSkeleton } from "@/components/Loa
 type SortKey = "name" | "class" | "totalSqm" | "vacantSqm" | "occupancy" | "askingPrice" | "floorCount"
 type SortDir = "asc" | "desc"
 
+const AREA_TRANSLATION_KEYS: Record<string, string> = {
+  north: "north",
+  center: "center",
+  south: "south",
+}
+
 export default function BuildingsPage() {
   const t = useTranslations("buildingsPage")
+  const tF = useTranslations("filters")
   const locale = useLocale()
   const { buildings, loading } = useBuildings()
   const { cities } = useCities()
@@ -248,7 +255,16 @@ export default function BuildingsPage() {
                         <td className="px-4 py-4">
                           <span className="text-xs uppercase tracking-[0.1em] bg-secondary/50 rounded-full px-2.5 py-1">{b.class}</span>
                         </td>
-                        <td className="px-4 py-4 text-sm text-muted-foreground">{b.area || "—"}</td>
+                        <td className="px-4 py-4 text-sm text-muted-foreground">
+                          {b.area ? (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setAreaFilter(b.area) }}
+                              className="hover:text-foreground hover:underline transition-colors"
+                            >
+                              {AREA_TRANSLATION_KEYS[b.area] ? tF(AREA_TRANSLATION_KEYS[b.area]) : b.area}
+                            </button>
+                          ) : "—"}
+                        </td>
                         <td className="px-4 py-4 text-end text-sm font-medium data-value">{b.totalSqm ? formatSqm(b.totalSqm, locale) : <span className="text-muted-foreground/40">—</span>}</td>
                         <td className="px-4 py-4 text-end text-sm font-medium data-value text-lease-red">{b.vacantSqm ? formatSqm(b.vacantSqm, locale) : <span className="text-muted-foreground/40">—</span>}</td>
                         <td className="px-4 py-4 text-end">

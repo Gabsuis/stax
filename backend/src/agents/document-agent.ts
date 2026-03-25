@@ -3,7 +3,7 @@ import { SequentialAgent, LlmAgent, InMemoryRunner } from '@google/adk';
 import { Type, Schema, ThinkingLevel } from '@google/genai';
 
 const ai = new GoogleGenAI({});
-const FLASH = 'gemini-3.1-flash-preview';
+const PRO = 'gemini-3.1-pro-preview';
 
 // ════════════════════════════════════════════════════════════
 // ROUTER: Flash Lite — lobby_sign or vacancy_listing?
@@ -11,7 +11,7 @@ const FLASH = 'gemini-3.1-flash-preview';
 
 export async function routeDocument(base64: string, mimeType: string): Promise<'lobby_sign' | 'vacancy_listing' | 'unknown'> {
   const response = await ai.models.generateContent({
-    model: 'gemini-3.1-flash-lite-preview',
+    model: 'gemini-3.1-flash-lite-preview',  // router
     contents: [{
       role: 'user',
       parts: [
@@ -49,7 +49,7 @@ export interface LobbySignResult {
 
 export async function extractLobbySign(base64: string, mimeType: string): Promise<LobbySignResult> {
   const response = await ai.models.generateContent({
-    model: FLASH,
+    model: PRO,
     contents: [{
       role: 'user',
       parts: [
@@ -115,7 +115,7 @@ const parserSchema: Schema = {
 
 const parserAgent = new LlmAgent({
   name: 'parser',
-  model: FLASH,
+  model: PRO,
   instruction: `Read the uploaded document and output ALL of its text content.
 
 This is an Israeli commercial real estate document with office spaces for rent.
@@ -167,7 +167,7 @@ const buildingsSchema: Schema = {
 
 const buildingsAgent = new LlmAgent({
   name: 'buildings_counter',
-  model: FLASH,
+  model: PRO,
   instruction: `Count every building in the parsed document and extract their basic info.
 
 ## Parsed content:
@@ -219,7 +219,7 @@ const floorsSchema: Schema = {
 
 const floorsAgent = new LlmAgent({
   name: 'floors_extractor',
-  model: FLASH,
+  model: PRO,
   instruction: `Find the vacant floors/spaces for each building listed in the previous step.
 
 ## Parsed content:

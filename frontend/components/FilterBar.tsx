@@ -39,9 +39,9 @@ export default function FilterBar({ areaFilter, classFilter, onAreaChange, onCla
 
   const areas = [
     { value: "all", label: t("all") },
-    { value: "צפון", label: t("north") },
-    { value: "מרכז", label: t("center") },
-    { value: "דרום", label: t("south") },
+    { value: "north", label: t("north") },
+    { value: "center", label: t("center") },
+    { value: "south", label: t("south") },
   ]
 
   const classes = [

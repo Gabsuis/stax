@@ -10,12 +10,6 @@ interface UseBuildings {
   refetch: () => void
 }
 
-// Map area enum to Hebrew display strings
-const areaToHebrew: Record<string, string> = {
-  north: 'צפון',
-  center: 'מרכז',
-  south: 'דרום',
-};
 
 export function useBuildings(): UseBuildings {
   const [buildings, setBuildings] = useState<Building[]>(mockBuildings);
@@ -137,7 +131,7 @@ export function useBuildings(): UseBuildings {
           address: row.address as string,
           city: row.city as string,
           cityEn: row.city_en as string,
-          area: (area ? (areaToHebrew[area] || area) : '') as Building['area'],
+          area: (area || '') as Building['area'],
           class: row.class as Building['class'],
           floorCount: row.floor_count as number,
           floorSize: row.typical_floor_sqm as number,

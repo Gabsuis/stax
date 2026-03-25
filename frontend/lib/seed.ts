@@ -16,12 +16,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-// Map Hebrew area strings to enum values
-const AREA_MAP: Record<string, string> = {
-  'צפון': 'north',
-  'מרכז': 'center',
-  'דרום': 'south',
-};
+// Area values are already English enums (north/center/south) in mock data
 
 // Map demo finish strings to delivery_condition enum
 const FINISH_MAP: Record<string, string> = {
@@ -48,7 +43,7 @@ async function seed() {
         address: b.address,
         city: 'הרצליה',
         city_en: 'Herzliya',
-        area: AREA_MAP[b.area] || null,
+        area: b.area || null,
         class: b.class,
         floor_count: b.floorCount,
         typical_floor_sqm: b.floorSize,

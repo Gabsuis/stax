@@ -33,8 +33,15 @@ interface Props {
   onSelect: (b: Building) => void
 }
 
+const AREA_TRANSLATION_KEYS: Record<string, string> = {
+  north: "north",
+  center: "center",
+  south: "south",
+}
+
 export default function BuildingCard({ building, onSelect }: Props) {
   const t = useTranslations("card")
+  const tF = useTranslations("filters")
   const locale = useLocale()
   const occ = Math.round(building.occupancy * 100)
 
@@ -60,7 +67,9 @@ export default function BuildingCard({ building, onSelect }: Props) {
               {building.class}
             </span>
             {building.area && (
-              <span className="text-xs text-muted-foreground">{building.area}</span>
+              <span className="text-xs text-muted-foreground">
+                {AREA_TRANSLATION_KEYS[building.area] ? tF(AREA_TRANSLATION_KEYS[building.area]) : building.area}
+              </span>
             )}
             {leedLabel && (
               <span className="flex items-center gap-1 text-[10px] text-lease-green bg-lease-green/10 rounded-full px-2 py-0.5">

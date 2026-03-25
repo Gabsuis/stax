@@ -243,7 +243,7 @@ const hqFloors: Floor[] = [
 
 export const buildings: Building[] = [
   { id: 1, name: "מגדל אמפא", nameEn: "Ampa Tower",
-    owner: "אמפא", address: "ספיר 7, הרצליה פיתוח", area: "מרכז",
+    owner: "אמפא", address: "ספיר 7, הרצליה פיתוח", area: "center",
     class: "A", floorCount: 15, floorSize: 1367, totalSqm: 20500, vacantSqm: 1700,
     askingPrice: 90, allowance: "TBD", finish: "As-Is New",
     parkingPrice: "650 ₪ צפה + 80 ₪ ארנונה", managementFee: 22,
@@ -251,7 +251,7 @@ export const buildings: Building[] = [
     occupancy: 0.917, floors: amphaFloors },
 
   { id: 2, name: "הרצליה ביזנס פארק", nameEn: "Herzliya Business Park",
-    owner: "—", address: "מדינת היהודים 85, הרצליה", area: "צפון",
+    owner: "—", address: "מדינת היהודים 85, הרצליה", area: "north",
     class: "A/B", floorCount: 14, floorSize: 5000, totalSqm: 70000, vacantSqm: 20900,
     askingPrice: 85, allowance: "2,000 ₪", finish: "As-Is New",
     parkingPrice: "800 ₪ צפה / 1,000 ₪ שמורה", managementFee: 28.5,
@@ -260,7 +260,7 @@ export const buildings: Building[] = [
     occupancy: 0.701, floors: herzliyaBizFloors },
 
   { id: 3, name: "גב ים צפון", nameEn: "Gav-Yam North",
-    owner: "גב-ים", address: "המדע 5, הרצליה", area: "צפון",
+    owner: "גב-ים", address: "המדע 5, הרצליה", area: "north",
     class: "A", floorCount: 8, floorSize: 3500, totalSqm: 28000, vacantSqm: 5000,
     askingPrice: 90, allowance: "2,000 ₪", finish: "As-Is New",
     parkingPrice: "750 ₪ צפה / 1,200 ₪ שמורה", managementFee: 20,
@@ -269,7 +269,7 @@ export const buildings: Building[] = [
     occupancy: 0.821, floors: gavYamNorthFloors },
 
   { id: 4, name: "בית אקרשטיין הישן", nameEn: "Akerstein Old Building",
-    owner: "—", address: "המדע 8, הרצליה", area: "צפון",
+    owner: "—", address: "המדע 8, הרצליה", area: "north",
     class: "C", floorCount: 4, floorSize: 1500, totalSqm: 6000, vacantSqm: 2000,
     askingPrice: 70, allowance: "1,000 ₪", finish: "As-Is",
     parkingPrice: "750 ₪ + מע\"מ", managementFee: 0,
@@ -278,7 +278,7 @@ export const buildings: Building[] = [
     occupancy: 0.667, floors: akersteinOldFloors },
 
   { id: 5, name: "משכית 25", nameEn: "Mashkit 25",
-    owner: "כלל", address: "משכית 25, הרצליה", area: "מרכז",
+    owner: "כלל", address: "משכית 25, הרצליה", area: "center",
     class: "A", floorCount: 10, floorSize: 2100, totalSqm: 21000, vacantSqm: 20300,
     askingPrice: 85, allowance: "TBD", finish: "As-Is / Shell & Core",
     parkingPrice: "800 ₪ + 110 ₪ דמ\"נ", managementFee: 0,
@@ -287,7 +287,7 @@ export const buildings: Building[] = [
     occupancy: 0.033, floors: mashkit25Floors },
 
   { id: 6, name: "קוגנייט", nameEn: "Cognyte",
-    owner: "—", address: "משכית 33, הרצליה", area: "מרכז",
+    owner: "—", address: "משכית 33, הרצליה", area: "center",
     class: "A/B", floorCount: 6, floorSize: 3167, totalSqm: 19000, vacantSqm: 4000,
     askingPrice: 80, allowance: "1,000 ₪", finish: "As-Is",
     parkingPrice: "700 ₪ + 100 ₪ ארנונה", managementFee: 19,
@@ -295,7 +295,7 @@ export const buildings: Building[] = [
     occupancy: 0.789, floors: cogniteFloors },
 
   { id: 7, name: "גלגלי הפלדה 11", nameEn: "Galgalei HaPalada 11",
-    owner: "—", address: "גלגלי הפלדה 11, הרצליה", area: "מרכז",
+    owner: "—", address: "גלגלי הפלדה 11, הרצליה", area: "center",
     class: "B", floorCount: 4, floorSize: 3000, totalSqm: 12000, vacantSqm: 1000,
     askingPrice: 80, allowance: "500 ₪", finish: "As-Is",
     parkingPrice: "—", managementFee: 20,
@@ -303,7 +303,7 @@ export const buildings: Building[] = [
     occupancy: 0.917, floors: galgaleiFloors },
 
   { id: 8, name: "תאומי שדרות הגלים", nameEn: "Taomei Sderot HaGalim",
-    owner: "—", address: "אבא אבן 8, הרצליה", area: "מרכז",
+    owner: "—", address: "אבא אבן 8, הרצליה", area: "center",
     class: "A", floorCount: 4, floorSize: 1800, totalSqm: 7200, vacantSqm: 170,
     askingPrice: 75, allowance: "0", finish: "As-Is",
     parkingPrice: "500 ₪", managementFee: 24,
@@ -312,7 +312,7 @@ export const buildings: Building[] = [
     occupancy: 0.976, floors: taomeiFloors },
 
   { id: 9, name: "מרכז גב ים שנקר", nameEn: "Gav-Yam Shanker Center",
-    owner: "גב-ים", address: "שנקר, הרצליה", area: "דרום",
+    owner: "גב-ים", address: "שנקר, הרצליה", area: "south",
     class: "A", floorCount: 14, floorSize: 5000, totalSqm: 70000, vacantSqm: 1868,
     askingPrice: 85, allowance: "TBD", finish: "As-Is",
     parkingPrice: "750 ₪ צפה / 1,200 ₪ שמורה", managementFee: 20,
@@ -321,7 +321,7 @@ export const buildings: Building[] = [
     occupancy: 0.973, floors: gavYamShankerFloors },
 
   { id: 10, name: "בית אמצור", nameEn: "Amtzur House",
-    owner: "—", address: "הסדנאות 8, הרצליה", area: "דרום",
+    owner: "—", address: "הסדנאות 8, הרצליה", area: "south",
     class: "B", floorCount: 5, floorSize: 4000, totalSqm: 20000, vacantSqm: 1540,
     askingPrice: 80, allowance: "1,000 ₪", finish: "As-Is",
     parkingPrice: "—", managementFee: 0,
@@ -329,7 +329,7 @@ export const buildings: Building[] = [
     occupancy: 0.923, floors: amtzurFloors },
 
   { id: 11, name: "מגדלי אקרשטיין C", nameEn: "Akerstein Towers C",
-    owner: "—", address: "אבא אבן 10, הרצליה", area: "דרום",
+    owner: "—", address: "אבא אבן 10, הרצליה", area: "south",
     class: "A", floorCount: 9, floorSize: 1400, totalSqm: 12600, vacantSqm: 5162,
     askingPrice: 110, allowance: "TBD", finish: "As-Is High Level",
     parkingPrice: "850 ₪ צפה / 1,000 ₪ קבועה", managementFee: 25.5,
@@ -338,7 +338,7 @@ export const buildings: Building[] = [
     occupancy: 0.590, floors: akersteinCFloors },
 
   { id: 12, name: "מגדלי אקרשטיין A", nameEn: "Akerstein Towers A",
-    owner: "—", address: "המנופים 9-11, הרצליה", area: "דרום",
+    owner: "—", address: "המנופים 9-11, הרצליה", area: "south",
     class: "A", floorCount: 9, floorSize: 1400, totalSqm: 12600, vacantSqm: 3750,
     askingPrice: 110, allowance: "TBD", finish: "As-Is High Level",
     parkingPrice: "750 ₪ צפה / 1,200 ₪ שמורה", managementFee: 25.5,
@@ -347,7 +347,7 @@ export const buildings: Building[] = [
     occupancy: 0.702, floors: akersteinAFloors },
 
   { id: 13, name: "בית גראפ", nameEn: "Graf House",
-    owner: "—", address: "שנקר 4, הרצליה", area: "דרום",
+    owner: "—", address: "שנקר 4, הרצליה", area: "south",
     class: "A", floorCount: 4, floorSize: 1500, totalSqm: 6000, vacantSqm: 641,
     askingPrice: 100, allowance: "ללא", finish: "As-Is New",
     parkingPrice: "750 ₪", managementFee: 22.5,
@@ -355,7 +355,7 @@ export const buildings: Building[] = [
     occupancy: 0.893, floors: grafFloors },
 
   { id: 14, name: "רוגובין ריט 1", nameEn: "Rogovin REIT 1",
-    owner: "—", address: "המנופים 10, הרצליה", area: "דרום",
+    owner: "—", address: "המנופים 10, הרצליה", area: "south",
     class: "A", floorCount: 5, floorSize: 5000, totalSqm: 25000, vacantSqm: 1100,
     askingPrice: 100, allowance: "ללא", finish: "As-Is",
     parkingPrice: "800 ₪", managementFee: 18,
@@ -363,7 +363,7 @@ export const buildings: Building[] = [
     occupancy: 0.956, floors: rogovingFloors },
 
   { id: 15, name: "בית תאטראות", nameEn: "Theaters House",
-    owner: "—", address: "משכית / מדינת היהודים, הרצליה", area: "צפון",
+    owner: "—", address: "משכית / מדינת היהודים, הרצליה", area: "north",
     class: "A/B", floorCount: 4, floorSize: 1500, totalSqm: 6000, vacantSqm: 1000,
     askingPrice: 85, allowance: "—", finish: "בגמר",
     parkingPrice: "750 ₪", managementFee: 21,
@@ -372,7 +372,7 @@ export const buildings: Building[] = [
     occupancy: 0.833, floors: theatersFloors },
 
   { id: 16, name: "בית שער העיר", nameEn: "Shaar HaIr House",
-    owner: "—", address: "אבא אבן / שנקר 1, הרצליה", area: "דרום",
+    owner: "—", address: "אבא אבן / שנקר 1, הרצליה", area: "south",
     class: "A/B", floorCount: 5, floorSize: 4000, totalSqm: 20000, vacantSqm: 890,
     askingPrice: 0, allowance: "—", finish: "—",
     parkingPrice: "—", managementFee: 0,

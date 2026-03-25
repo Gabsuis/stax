@@ -95,7 +95,7 @@ app.post('/process', async (c) => {
         // Save agent output to document
         await supabase.from('documents').update({
           ai_raw_output: { type: 'lobby_sign', result },
-          ai_model: 'gemini-3.1-flash-preview',
+          ai_model: 'gemini-3.1-pro-preview',
           document_type: 'floor_plan',
         }).eq('id', docRow.id);
 
@@ -190,7 +190,7 @@ app.post('/process', async (c) => {
 
         await supabase.from('documents').update({
           ai_raw_output: { type: 'vacancy_listing', buildings: agentOutputs['buildings_counter'], floors: agentOutputs['floors_extractor'] },
-          ai_model: 'gemini-3.1-flash-preview',
+          ai_model: 'gemini-3.1-pro-preview',
           document_type: 'vacancy_listing',
         }).eq('id', docRow.id);
 

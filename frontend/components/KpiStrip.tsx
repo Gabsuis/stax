@@ -61,7 +61,7 @@ export default function KpiStrip({ building }: Props) {
   const colCount = Math.min(cells.length, 12)
 
   return (
-    <div className="mx-7 mb-4 glass-strong rounded-xl overflow-hidden">
+    <div className="glass-strong rounded-xl overflow-hidden">
       <div className={`grid grid-cols-4 md:grid-cols-${Math.min(colCount, 8)} lg:grid-cols-${colCount}`}
         style={{ gridTemplateColumns: `repeat(${colCount}, minmax(0, 1fr))` }}
       >

@@ -9,7 +9,8 @@ import BlockDetail from "./BlockDetail"
 import {
   X, MapPin, User, Phone, Mail, Car, Clock, Leaf, Train,
   UtensilsCrossed, Coffee, Dumbbell, ShoppingBag, Sofa, Presentation,
-  Baby, Droplets, Bike, Sun, Zap, FileText, Building2, Calendar
+  Baby, Droplets, Bike, Sun, Zap, FileText, Building2, Calendar,
+  ChevronDown
 } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import { formatPrice } from "@/lib/utils"
@@ -68,6 +69,8 @@ function DataRow({ label, value, href }: { label: string; value: string | null |
 export default function BuildingModal({ building: initialBuilding, onClose }: Props) {
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null)
   const [localBuilding, setLocalBuilding] = useState<Building | null>(null)
+  const [kpiOpen, setKpiOpen] = useState(false)
+  const [detailsOpen, setDetailsOpen] = useState(false)
 
   useEffect(() => {
     if (initialBuilding) {
@@ -186,61 +189,103 @@ export default function BuildingModal({ building: initialBuilding, onClose }: Pr
               </button>
             </div>
 
-            {/* KPI Strip */}
-            <KpiStrip building={building} />
-
-            {/* Key:Value data grid */}
-            <div className="mx-7 mb-4 glass rounded-xl p-4">
-              <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-0">
-                <DataRow label="Owner" value={building.owner !== "—" ? building.owner : null} />
-                <DataRow label="Contact" value={building.contactName || (building.contact !== "—" ? building.contact : null)} />
-                <DataRow label="Phone" value={building.contactPhone || (building.phone !== "—" ? building.phone : null)} href={building.contactPhone ? `tel:${building.contactPhone}` : undefined} />
-                <DataRow label="Email" value={building.contactEmail} href={building.contactEmail ? `mailto:${building.contactEmail}` : undefined} />
-                <DataRow label="Year Built" value={building.yearBuilt?.toString()} />
-                <DataRow label="LEED" value={leedLabel} />
-                <DataRow label="Delivery" value={deliveryLabel} />
-                <DataRow label="Mgmt Fee" value={building.managementFee ? `₪${building.managementFee}/sqm` : null} />
-                <DataRow label="Municipal Tax" value={building.municipalTaxSqm ? `₪${building.municipalTaxSqm}/sqm` : null} />
-                <DataRow label="Parking" value={parkingText} />
-                <DataRow label="Transit" value={transitText} />
-                <DataRow label="Amenities" value={
-                  building.amenities?.length
-                    ? building.amenities.map((a) => AMENITY_CONFIG[a]?.label || a).join(" · ")
-                    : null
-                } />
-              </div>
-
-              {/* Amenity pills (only if we have them) */}
-              {building.amenities && building.amenities.length > 0 && (
-                <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/50 flex-wrap">
-                  {building.amenities.map((a) => {
-                    const config = AMENITY_CONFIG[a]
-                    if (!config) return null
-                    const Icon = config.icon
-                    return (
-                      <span key={a} className="flex items-center gap-1.5 text-[10px] text-muted-foreground bg-secondary/40 rounded-full px-2.5 py-1">
-                        <Icon className="w-3 h-3" />
-                        {config.label}
-                      </span>
-                    )
-                  })}
-                </div>
-              )}
-
-              {/* Freshness */}
-              <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/50 text-[10px] text-muted-foreground/40">
-                <Clock className="w-3 h-3" />
-                {building.updatedAt ? (
-                  <span>Updated {formatDistanceToNow(new Date(building.updatedAt), { addSuffix: true })}</span>
-                ) : (
-                  <span>Update time: Unknown</span>
+            {/* Collapsible KPI Strip */}
+            <div className="mx-7 mb-2">
+              <button
+                onClick={() => setKpiOpen(!kpiOpen)}
+                className="flex items-center gap-2 w-full text-xs text-muted-foreground hover:text-foreground transition-colors py-1.5"
+              >
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${kpiOpen ? "" : "-rotate-90"}`} />
+                <span className="uppercase tracking-[0.15em] font-medium">Key Metrics</span>
+              </button>
+              <AnimatePresence initial={false}>
+                {kpiOpen && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                    className="overflow-hidden"
+                  >
+                    <div className="pt-1">
+                      <KpiStrip building={building} />
+                    </div>
+                  </motion.div>
                 )}
-                {building.sourceDocumentName && (
-                  <span className="flex items-center gap-1">
-                    · <FileText className="w-3 h-3" /> {building.sourceDocumentName}
-                  </span>
+              </AnimatePresence>
+            </div>
+
+            {/* Collapsible Details */}
+            <div className="mx-7 mb-4">
+              <button
+                onClick={() => setDetailsOpen(!detailsOpen)}
+                className="flex items-center gap-2 w-full text-xs text-muted-foreground hover:text-foreground transition-colors py-1.5"
+              >
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${detailsOpen ? "" : "-rotate-90"}`} />
+                <span className="uppercase tracking-[0.15em] font-medium">Building Details</span>
+              </button>
+              <AnimatePresence initial={false}>
+                {detailsOpen && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                    className="overflow-hidden"
+                  >
+                    <div className="glass rounded-xl p-4 mt-1">
+                      <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-0">
+                        <DataRow label="Owner" value={building.owner !== "—" ? building.owner : null} />
+                        <DataRow label="Contact" value={building.contactName || (building.contact !== "—" ? building.contact : null)} />
+                        <DataRow label="Phone" value={building.contactPhone || (building.phone !== "—" ? building.phone : null)} href={building.contactPhone ? `tel:${building.contactPhone}` : undefined} />
+                        <DataRow label="Email" value={building.contactEmail} href={building.contactEmail ? `mailto:${building.contactEmail}` : undefined} />
+                        <DataRow label="Year Built" value={building.yearBuilt?.toString()} />
+                        <DataRow label="LEED" value={leedLabel} />
+                        <DataRow label="Delivery" value={deliveryLabel} />
+                        <DataRow label="Mgmt Fee" value={building.managementFee ? `₪${building.managementFee}/sqm` : null} />
+                        <DataRow label="Municipal Tax" value={building.municipalTaxSqm ? `₪${building.municipalTaxSqm}/sqm` : null} />
+                        <DataRow label="Parking" value={parkingText} />
+                        <DataRow label="Transit" value={transitText} />
+                        <DataRow label="Amenities" value={
+                          building.amenities?.length
+                            ? building.amenities.map((a) => AMENITY_CONFIG[a]?.label || a).join(" · ")
+                            : null
+                        } />
+                      </div>
+
+                      {building.amenities && building.amenities.length > 0 && (
+                        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/50 flex-wrap">
+                          {building.amenities.map((a) => {
+                            const config = AMENITY_CONFIG[a]
+                            if (!config) return null
+                            const Icon = config.icon
+                            return (
+                              <span key={a} className="flex items-center gap-1.5 text-[10px] text-muted-foreground bg-secondary/40 rounded-full px-2.5 py-1">
+                                <Icon className="w-3 h-3" />
+                                {config.label}
+                              </span>
+                            )
+                          })}
+                        </div>
+                      )}
+
+                      <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/50 text-[10px] text-muted-foreground/40">
+                        <Clock className="w-3 h-3" />
+                        {building.updatedAt ? (
+                          <span>Updated {formatDistanceToNow(new Date(building.updatedAt), { addSuffix: true })}</span>
+                        ) : (
+                          <span>Update time: Unknown</span>
+                        )}
+                        {building.sourceDocumentName && (
+                          <span className="flex items-center gap-1">
+                            · <FileText className="w-3 h-3" /> {building.sourceDocumentName}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
                 )}
-              </div>
+              </AnimatePresence>
             </div>
 
             {/* Body */}
