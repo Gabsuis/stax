@@ -116,20 +116,20 @@ app.post('/process', async (c) => {
         const author = event.author ?? '';
         const eventText = stringifyContent(event);
 
-        // Skip user messages and base64 blobs
+        // Skip user messages, empty events, and garbage blobs
         if (author === 'user' || !eventText || eventText.length < 2) continue;
-        const isBase64 = eventText.length > 1000 && /^[A-Za-z0-9+/=\s]+$/.test(eventText.slice(0, 200));
-        if (isBase64) { console.log(`[SKIP] base64 blob (${eventText.length} chars)`); continue; }
-        {
-          agentLogs.push({
-            agent: author,
-            timestamp: new Date().toISOString(),
-            text: eventText.slice(0, 10000),
-          });
-          // Keep the LAST output per agent (the final response)
-          agentOutputs[author] = eventText;
-          console.log(`[AGENT:${author}] (${eventText.length} chars): ${eventText.slice(0, 300)}${eventText.length > 300 ? '...' : ''}`);
+        if (eventText.length > 50000) {
+          console.log(`[SKIP] massive blob from ${author} (${eventText.length} chars)`);
+          continue;
         }
+
+        agentLogs.push({
+          agent: author,
+          timestamp: new Date().toISOString(),
+          text: eventText.slice(0, 5000),
+        });
+        agentOutputs[author] = eventText;
+        console.log(`[AGENT:${author}] (${eventText.length} chars): ${eventText.slice(0, 300)}${eventText.length > 300 ? '...' : ''}`);
 
         if (author && author !== lastAuthor) {
           lastAuthor = author;
