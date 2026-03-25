@@ -134,12 +134,10 @@ app.post('/process', async (c) => {
         if (author && author !== lastAuthor) {
           lastAuthor = author;
           const steps: Record<string, { step: number; total: number; message: string }> = {
-            parser: { step: 1, total: 6, message: 'Reading & parsing document...' },
-            classifier: { step: 2, total: 6, message: 'Classifying document type...' },
-            buildings_extractor: { step: 3, total: 6, message: 'Identifying buildings...' },
-            floors_extractor: { step: 4, total: 6, message: 'Extracting floors & tenants...' },
-            financials_extractor: { step: 5, total: 6, message: 'Extracting financials & contacts...' },
-            merger: { step: 6, total: 6, message: 'Assembling final data...' },
+            parser: { step: 1, total: 4, message: 'Reading document...' },
+            classifier: { step: 2, total: 4, message: 'Identifying buildings...' },
+            buildings_extractor: { step: 3, total: 4, message: 'Extracting building data...' },
+            floors_extractor: { step: 4, total: 4, message: 'Extracting floors & units...' },
           };
           const stepInfo = steps[author];
           if (stepInfo) {
@@ -173,7 +171,6 @@ app.post('/process', async (c) => {
 
       // Read results — try session state first, fallback to collected event outputs
       let classificationRaw: unknown;
-      let extractionRaw: unknown;
 
       const updatedSession = await runner.sessionService.getSession({
         appName: 'stax-import',
@@ -182,22 +179,61 @@ app.post('/process', async (c) => {
       });
 
       if (updatedSession) {
-        // Log session state keys
         console.log('[DEBUG] Session state keys:', Object.keys(updatedSession.state));
-        for (const [key, val] of Object.entries(updatedSession.state)) {
-          const preview = typeof val === 'string' ? val.slice(0, 200) : JSON.stringify(val).slice(0, 200);
-          console.log(`  state[${key}]: ${preview}...`);
-        }
         classificationRaw = updatedSession.state['classification'] || agentOutputs['classifier'];
-        extractionRaw = updatedSession.state['extraction_result'] || agentOutputs['merger'];
       } else {
         console.warn('[WARN] Session state not found, using event outputs');
         classificationRaw = agentOutputs['classifier'];
-        extractionRaw = agentOutputs['merger'];
       }
 
-      if (!extractionRaw) {
-        await send('error', { message: 'Pipeline completed but no extraction output received. Check agent logs.' });
+      // Get buildings and floors data (from state or event outputs)
+      const buildingsRaw = updatedSession?.state['buildings_data'] || agentOutputs['buildings_extractor'];
+      const floorsRaw = updatedSession?.state['floors_data'] || agentOutputs['floors_extractor'];
+
+      // SERVER-SIDE MERGE: combine buildings + floors into final result
+      // No AI needed — deterministic code merge
+      let classificationParsed: Record<string, unknown> = {};
+      try {
+        const raw = typeof classificationRaw === 'string' ? classificationRaw : JSON.stringify(classificationRaw);
+        classificationParsed = JSON.parse(raw.replace(/^```json?\n?/m, '').replace(/\n?```$/m, '').trim());
+      } catch { /* use defaults */ }
+
+      let buildingsParsed: { buildings: Record<string, unknown>[] } = { buildings: [] };
+      try {
+        const raw = typeof buildingsRaw === 'string' ? buildingsRaw : JSON.stringify(buildingsRaw);
+        buildingsParsed = JSON.parse(raw.replace(/^```json?\n?/m, '').replace(/\n?```$/m, '').trim());
+      } catch { /* empty */ }
+
+      let floorsParsed: { buildings: Record<string, unknown>[] } = { buildings: [] };
+      try {
+        const raw = typeof floorsRaw === 'string' ? floorsRaw : JSON.stringify(floorsRaw);
+        floorsParsed = JSON.parse(raw.replace(/^```json?\n?/m, '').replace(/\n?```$/m, '').trim());
+      } catch { /* empty */ }
+
+      // Merge floors into buildings by name
+      const floorsMap = new Map<string, unknown[]>();
+      for (const fb of (floorsParsed.buildings || [])) {
+        const name = fb.name as string;
+        if (name) floorsMap.set(name.toLowerCase(), fb.floors as unknown[] || []);
+      }
+
+      const mergedBuildings = (buildingsParsed.buildings || []).map((b) => {
+        const name = (b.name as string || '').toLowerCase();
+        const floors = floorsMap.get(name) || [];
+        return { ...b, floors };
+      });
+
+      // Build the final extraction result
+      const extractionRaw = JSON.stringify({
+        document_type: classificationParsed.document_type || 'other',
+        language: (classificationParsed.language as string || 'he').toLowerCase(),
+        buildings: mergedBuildings,
+      });
+
+      console.log(`[MERGE] ${mergedBuildings.length} buildings merged, sending to frontend`);
+
+      if (mergedBuildings.length === 0) {
+        await send('error', { message: 'No buildings extracted from the document.' });
         await supabase.from('documents').update({
           ai_status: 'failed',
           ai_raw_output: { classification: classificationRaw, agent_logs: agentLogs, agent_outputs: agentOutputs },
@@ -205,30 +241,15 @@ app.post('/process', async (c) => {
         return;
       }
 
-      // Parse the merged extraction result
-      let extractionParsed: unknown;
-      try {
-        const raw = typeof extractionRaw === 'string' ? extractionRaw : JSON.stringify(extractionRaw);
-        const jsonStr = raw.replace(/^```json?\n?/m, '').replace(/\n?```$/m, '').trim();
-        extractionParsed = JSON.parse(jsonStr);
-      } catch {
-        await send('error', { message: 'Failed to parse merged output as JSON' });
-        await supabase.from('documents').update({
-          ai_status: 'failed',
-          ai_raw_output: { raw: extractionRaw, agent_logs: agentLogs },
-        }).eq('id', docRow.id);
-        return;
-      }
-
+      // Parse the server-merged result
+      const extractionParsed = JSON.parse(extractionRaw);
       const extractionValidation = extractionResultSchema.safeParse(extractionParsed);
       if (!extractionValidation.success) {
-        // Try lenient parse — the merger output may not perfectly match Zod schema
-        // Accept it anyway if it has buildings array
-        const lenient = extractionParsed as Record<string, unknown>;
-        if (lenient && Array.isArray(lenient.buildings) && lenient.buildings.length > 0) {
-          console.warn('[WARN] Zod validation failed but data has buildings, proceeding:', extractionValidation.error.message);
+        // Lenient: accept if it has buildings array even if Zod fails
+        if (Array.isArray(extractionParsed.buildings) && extractionParsed.buildings.length > 0) {
+          console.warn('[WARN] Zod validation failed but buildings exist, proceeding');
         } else {
-          await send('error', { message: `Schema validation failed: ${extractionValidation.error.message}` });
+          await send('error', { message: `Validation failed: ${extractionValidation.error.message}` });
           await supabase.from('documents').update({
             ai_status: 'review_needed',
             ai_raw_output: extractionParsed,
@@ -248,11 +269,10 @@ app.post('/process', async (c) => {
           classification: classificationRaw,
           buildings: agentOutputs['buildings_extractor'],
           floors: agentOutputs['floors_extractor'],
-          financials: agentOutputs['financials_extractor'],
           merged: extractionRaw,
           agent_logs: agentLogs,
         },
-        ai_model: 'gemini-3.1-pro-preview',
+        ai_model: 'gemini-3.1-flash-preview',
       }).eq('id', docRow.id);
 
       await send('progress', {
