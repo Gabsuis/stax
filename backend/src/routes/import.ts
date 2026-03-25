@@ -116,7 +116,9 @@ app.post('/process', async (c) => {
         const author = event.author ?? '';
         const eventText = stringifyContent(event);
 
-        if (author && author !== 'user' && eventText) {
+        // Skip events that contain base64 data (user message with PDF)
+        const isBase64 = eventText.length > 10000 && /^[A-Za-z0-9+/=]+$/.test(eventText.slice(0, 100));
+        if (author && author !== 'user' && eventText && !isBase64) {
           agentLogs.push({
             agent: author,
             timestamp: new Date().toISOString(),
@@ -166,6 +168,15 @@ app.post('/process', async (c) => {
         }
       }
 
+      // Debug: log what each agent stored
+      console.log('\n' + '═'.repeat(60));
+      console.log('[DEBUG] Pipeline complete. Agent outputs:');
+      for (const [agent, output] of Object.entries(agentOutputs)) {
+        const preview = typeof output === 'string' ? output.slice(0, 200) : JSON.stringify(output).slice(0, 200);
+        console.log(`  ${agent}: ${preview}...`);
+      }
+      console.log('═'.repeat(60) + '\n');
+
       // Read results — try session state first, fallback to collected event outputs
       let classificationRaw: unknown;
       let extractionRaw: unknown;
@@ -177,6 +188,12 @@ app.post('/process', async (c) => {
       });
 
       if (updatedSession) {
+        // Log session state keys
+        console.log('[DEBUG] Session state keys:', Object.keys(updatedSession.state));
+        for (const [key, val] of Object.entries(updatedSession.state)) {
+          const preview = typeof val === 'string' ? val.slice(0, 200) : JSON.stringify(val).slice(0, 200);
+          console.log(`  state[${key}]: ${preview}...`);
+        }
         classificationRaw = updatedSession.state['classification'] || agentOutputs['classifier'];
         extractionRaw = updatedSession.state['extraction_result'] || agentOutputs['merger'];
       } else {
