@@ -49,7 +49,7 @@ export default function ImportPage() {
   const [expandedBuilding, setExpandedBuilding] = useState<number | null>(null)
   const [duplicateDecisions, setDuplicateDecisions] = useState<Record<number, { action: DuplicateAction; existing_id?: string }>>({})
   const [saving, setSaving] = useState(false)
-  const [lobbySign, setLobbySign] = useState<{ building_name: string; building_name_en: string; entrance: string; floor_count: number; floors: { floor_number: string; tenants: string[]; has_vacancy: boolean }[] } | null>(null)
+  const [lobbySign, setLobbySign] = useState<{ building_name: string; building_name_en: string; address: string; city: string; city_en: string; entrance: string; floor_count: number; floors: { floor_number: string; tenants: string[]; has_vacancy: boolean }[] }[] | null>(null)
   const [dragOver, setDragOver] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
   const [warningMessage, setWarningMessage] = useState("")
@@ -466,60 +466,96 @@ export default function ImportPage() {
                     </div>
 
                     {/* ── LOBBY SIGN: Stacking plan preview ── */}
-                    {lobbySign && (
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-3">
-                          <Building2 className="w-5 h-5 text-primary" />
-                          <div>
-                            <div className="text-lg font-display tracking-tight">{lobbySign.building_name || lobbySign.building_name_en}</div>
-                            {lobbySign.building_name_en && lobbySign.building_name && (
-                              <div className="text-xs text-muted-foreground">{lobbySign.building_name_en}</div>
-                            )}
-                            {lobbySign.entrance && (
-                              <div className="text-xs text-muted-foreground">{lobbySign.entrance}</div>
-                            )}
-                          </div>
-                          <div className="ms-auto text-xs text-muted-foreground glass rounded-full px-3 py-1">
-                            {lobbySign.floor_count} floors · {lobbySign.floors.reduce((sum, f) => sum + f.tenants.length, 0)} tenants
-                          </div>
-                        </div>
-
-                        {/* Visual stacking plan */}
-                        <div className="flex flex-col gap-[3px]">
-                          {lobbySign.floors.map((floor) => (
-                            <div key={floor.floor_number} className="flex items-center gap-2.5 px-2 py-[2px]">
-                              <span className="w-7 shrink-0 text-xs text-foreground/70 text-left font-mono font-medium">
-                                {floor.floor_number}
-                              </span>
-                              <div className="flex flex-1 gap-[2px]">
-                                {floor.tenants.map((tenant, ti) => {
-                                  const isVacant = floor.has_vacancy && tenant.includes("להשכרה")
-                                  const pct = 100 / floor.tenants.length
-                                  return (
-                                    <div
-                                      key={ti}
-                                      className="flex items-center overflow-hidden"
-                                      style={{
-                                        width: `${pct}%`,
-                                        minWidth: "40px",
-                                        height: 40,
-                                        borderRadius: 8,
-                                        ...(isVacant
-                                          ? { background: "rgba(255,255,255,0.06)", border: "1.5px dashed rgba(255,255,255,0.2)" }
-                                          : { background: "linear-gradient(135deg, rgba(16,185,129,0.25), rgba(16,185,129,0.12))", borderInlineStart: "3px solid #10b981" }
-                                        ),
-                                      }}
-                                    >
-                                      <span className="truncate px-2 text-xs font-medium" style={{ color: isVacant ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.9)" }}>
-                                        {isVacant ? "Vacant" : tenant}
-                                      </span>
-                                    </div>
-                                  )
-                                })}
+                    {lobbySign && lobbySign.length > 0 && (
+                      <div className="space-y-6">
+                        {lobbySign.map((sign, si) => (
+                          <div key={si} className="space-y-3">
+                            {/* Editable building info */}
+                            <div className="flex items-start gap-3">
+                              <Building2 className="w-5 h-5 text-primary mt-1 shrink-0" />
+                              <div className="flex-1 space-y-2">
+                                <input
+                                  type="text"
+                                  value={sign.building_name || sign.building_name_en}
+                                  onChange={(e) => {
+                                    const updated = [...lobbySign]
+                                    updated[si] = { ...updated[si], building_name: e.target.value }
+                                    setLobbySign(updated)
+                                  }}
+                                  placeholder={locale === "he" ? "שם הבניין..." : "Building name..."}
+                                  className="text-lg font-display tracking-tight bg-transparent border-b border-transparent hover:border-border focus:border-primary focus:outline-none transition-colors w-full"
+                                />
+                                <div className="flex gap-2">
+                                  <input
+                                    type="text"
+                                    value={sign.address}
+                                    onChange={(e) => {
+                                      const updated = [...lobbySign]
+                                      updated[si] = { ...updated[si], address: e.target.value }
+                                      setLobbySign(updated)
+                                    }}
+                                    placeholder={locale === "he" ? "כתובת..." : "Address..."}
+                                    className="text-xs text-muted-foreground bg-transparent border-b border-transparent hover:border-border focus:border-primary focus:outline-none transition-colors flex-1"
+                                  />
+                                  <input
+                                    type="text"
+                                    value={sign.city || sign.city_en}
+                                    onChange={(e) => {
+                                      const updated = [...lobbySign]
+                                      updated[si] = { ...updated[si], city: e.target.value }
+                                      setLobbySign(updated)
+                                    }}
+                                    placeholder={locale === "he" ? "עיר..." : "City..."}
+                                    className="text-xs text-muted-foreground bg-transparent border-b border-transparent hover:border-border focus:border-primary focus:outline-none transition-colors w-32"
+                                  />
+                                </div>
+                              </div>
+                              <div className="text-xs text-muted-foreground glass rounded-full px-3 py-1 shrink-0">
+                                {sign.entrance && <span>{sign.entrance} · </span>}
+                                {sign.floor_count} floors · {sign.floors.reduce((sum, f) => sum + f.tenants.length, 0)} tenants
                               </div>
                             </div>
-                          ))}
-                        </div>
+
+                            {/* Visual stacking plan */}
+                            <div className="flex flex-col gap-[3px]">
+                              {sign.floors.map((floor) => (
+                                <div key={floor.floor_number} className="flex items-center gap-2.5 px-2 py-[2px]">
+                                  <span className="w-7 shrink-0 text-xs text-foreground/70 text-left font-mono font-medium">
+                                    {floor.floor_number}
+                                  </span>
+                                  <div className="flex flex-1 gap-[2px]">
+                                    {floor.tenants.map((tenant, ti) => {
+                                      const isVacant = floor.has_vacancy && tenant.includes("להשכרה")
+                                      return (
+                                        <div
+                                          key={ti}
+                                          className="flex-1 flex items-center overflow-hidden"
+                                          style={{
+                                            minWidth: "40px",
+                                            height: 40,
+                                            borderRadius: 8,
+                                            ...(isVacant
+                                              ? { background: "rgba(255,255,255,0.06)", border: "1.5px dashed rgba(255,255,255,0.2)" }
+                                              : { background: "linear-gradient(135deg, rgba(16,185,129,0.25), rgba(16,185,129,0.12))", borderInlineStart: "3px solid #10b981" }
+                                            ),
+                                          }}
+                                        >
+                                          <span className="truncate px-2 text-xs font-medium" style={{ color: isVacant ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.9)" }}>
+                                            {isVacant ? "Vacant" : tenant}
+                                          </span>
+                                        </div>
+                                      )
+                                    })}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+
+                            {lobbySign.length > 1 && si < lobbySign.length - 1 && (
+                              <div className="border-t border-border/30 mt-4" />
+                            )}
+                          </div>
+                        ))}
 
                         {/* Legend */}
                         <div className="flex items-center gap-4 text-xs text-muted-foreground">

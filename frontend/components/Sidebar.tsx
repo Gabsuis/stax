@@ -55,7 +55,7 @@ export default function Sidebar({ buildings }: Props) {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-full text-sm transition-all duration-300 overflow-hidden bg-foreground ${
+                className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-full text-sm transition-all duration-300 overflow-hidden bg-neutral-900 dark:bg-neutral-800 ${
                   isActive ? "font-medium" : "hover:opacity-90"
                 }`}
               >

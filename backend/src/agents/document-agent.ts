@@ -36,7 +36,7 @@ export interface FloorData {
   has_vacancy: boolean
 }
 
-export interface LobbySignResult {
+export interface LobbySignBuilding {
   building_name: string
   building_name_en: string
   address: string
@@ -47,67 +47,82 @@ export interface LobbySignResult {
   floors: FloorData[]
 }
 
+export type LobbySignResult = LobbySignBuilding[];
+
 export async function extractLobbySign(base64: string, mimeType: string): Promise<LobbySignResult> {
   const response = await ai.models.generateContent({
     model: PRO,
     contents: [{
       role: 'user',
       parts: [
-        { text: `You are reading a photo of an Israeli building lobby directory sign. Your job is to list EVERY tenant on EVERY floor. Be meticulous — do not miss any company name or logo.
+        { text: `You are reading a photo of an Israeli building lobby directory sign. Your job is to list EVERY tenant on EVERY floor. Be meticulous.
 
 INSTRUCTIONS:
 1. Start at the TOP of the sign and work DOWN
-2. The building name is at the very top (e.g. "גלגלי הפלדה 11")
+2. The building name is usually at the very top (e.g. "גלגלי הפלדה 11"). It might be MISSING — that's OK, leave building_name empty.
 3. Each horizontal row = one floor. The big number on the right/left = floor number
 4. On each floor row, read EVERY company name and logo from LEFT to RIGHT
 5. Include Hebrew names, English names, and mixed names exactly as written
 6. If you see "משרד להשכרה" or "להשכרה" with a phone number, that floor has a vacancy — set has_vacancy: true AND include "להשכרה [phone]" as a tenant entry
 7. "קומת קרקע" = floor "0" (ground floor)
-8. If the sign says "כניסה א" or "כניסה ב", note it — both entrances are the SAME building
-9. Order floors from HIGHEST number to LOWEST in the output (top of building first)
+8. Order floors from HIGHEST number to LOWEST in the output
 
-Return JSON:
-{
-  "building_name": "Hebrew name from top of sign",
-  "building_name_en": "English name if visible",
-  "address": "street address if visible on sign",
-  "city": "city in Hebrew (guess from building name if needed)",
-  "city_en": "city in English",
-  "entrance": "כניסה א/ב if visible, empty string if not",
-  "floor_count": total number of floors on the sign,
-  "floors": [
-    { "floor_number": "4", "tenants": ["Company A", "Company B"], "has_vacancy": false },
-    { "floor_number": "3", "tenants": ["Company C"], "has_vacancy": false }
-  ]
-}
+MULTI-BUILDING SIGNS:
+Some signs show MULTIPLE buildings or sections (e.g. "← A" and "← B", or "בניין A" and "בניין B", or "כניסה א" and "כניסה ב" with DIFFERENT floor numbers/tenants).
+- If the sign clearly shows separate sections with different floors, return MULTIPLE building objects
+- Each section gets its own building with its own floors
+- Use the section label as the entrance field (e.g. "A", "B", "כניסה א")
+- The building_name is the SAME for all sections (it's one physical building with multiple entrances)
 
-CRITICAL: Do NOT skip any tenant. Read every logo, every text, every name on each floor row. If unsure about a name, include your best reading. Better to include a slightly wrong name than to miss a tenant entirely.
+Return a JSON ARRAY of buildings:
+[
+  {
+    "building_name": "Hebrew name or empty string if not visible",
+    "building_name_en": "English name or empty string",
+    "address": "street address or empty string",
+    "city": "city in Hebrew or empty string",
+    "city_en": "city in English or empty string",
+    "entrance": "A, B, כניסה א, etc. or empty string",
+    "floor_count": number of floors in this section,
+    "floors": [
+      { "floor_number": "4", "tenants": ["Company A", "Company B"], "has_vacancy": false },
+      { "floor_number": "3", "tenants": ["Company C"], "has_vacancy": false }
+    ]
+  }
+]
 
-Return ONLY valid JSON.` },
+If there's only ONE building/section, return an array with ONE object.
+
+CRITICAL: Do NOT skip any tenant. Read every logo, every text, every name on each floor row. If unsure about a name, include your best reading.
+
+Return ONLY a valid JSON array.` },
         { inlineData: { data: base64, mimeType } },
       ],
     }],
     config: {
       responseMimeType: 'application/json',
-      thinkingConfig: { thinkingLevel: 'MEDIUM' as unknown as undefined },
+      thinkingConfig: { thinkingLevel: 'HIGH' as unknown as undefined },
     },
   });
 
-  const parsed = JSON.parse(response.text || '{}');
-  return {
-    building_name: parsed.building_name || '',
-    building_name_en: parsed.building_name_en || '',
-    address: parsed.address || '',
-    city: parsed.city || '',
-    city_en: parsed.city_en || '',
-    entrance: parsed.entrance || '',
-    floor_count: parsed.floor_count || parsed.floors?.length || 0,
-    floors: (parsed.floors || []).map((f: Record<string, unknown>) => ({
+  const raw = JSON.parse(response.text || '[]');
+  // Handle both array and single object responses
+  const buildings: Record<string, unknown>[] = Array.isArray(raw) ? raw : [raw];
+
+  return buildings.map((parsed) => ({
+    building_name: (parsed.building_name as string) || '',
+    building_name_en: (parsed.building_name_en as string) || '',
+    address: (parsed.address as string) || '',
+    city: (parsed.city as string) || '',
+    city_en: (parsed.city_en as string) || '',
+    entrance: (parsed.entrance as string) || '',
+    floor_count: (parsed.floor_count as number) || (parsed.floors as unknown[])?.length || 0,
+    floors: ((parsed.floors as Record<string, unknown>[]) || []).map((f) => ({
       floor_number: String(f.floor_number ?? ''),
       tenants: Array.isArray(f.tenants) ? f.tenants.map(String) : [],
       has_vacancy: f.has_vacancy === true,
     })),
-  };
+  }));
 }
 
 // ════════════════════════════════════════════════════════════

@@ -217,13 +217,13 @@ app.post('/process', async (c) => {
 });
 
 // Convert lobby sign result to our standard ExtractionResult format
-function lobbySignToExtraction(sign: LobbySignResult): ExtractionResult {
+function lobbySignToExtraction(signs: LobbySignResult): ExtractionResult {
   return {
     document_type: 'floor_plan',
-    language: sign.building_name ? 'he' : 'en',
-    buildings: [{
-      name: sign.building_name || sign.building_name_en || 'Unknown Building',
-      name_en: sign.building_name_en,
+    language: signs.some(s => s.building_name) ? 'he' : 'en',
+    buildings: signs.map((sign) => ({
+      name: sign.building_name || sign.building_name_en || '',
+      name_en: sign.building_name_en || undefined,
       address: sign.address || undefined,
       city: sign.city || undefined,
       city_en: sign.city_en || undefined,
@@ -239,7 +239,7 @@ function lobbySignToExtraction(sign: LobbySignResult): ExtractionResult {
         })),
       })),
       _confidence: 0.9,
-    }],
+    })),
   };
 }
 

@@ -69,7 +69,7 @@ function DataRow({ label, value, href }: { label: string; value: string | null |
 export default function BuildingModal({ building: initialBuilding, onClose }: Props) {
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null)
   const [localBuilding, setLocalBuilding] = useState<Building | null>(null)
-  const [kpiOpen, setKpiOpen] = useState(false)
+  const [kpiOpen, setKpiOpen] = useState(true)
   const [detailsOpen, setDetailsOpen] = useState(false)
 
   useEffect(() => {
