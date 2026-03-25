@@ -10,6 +10,7 @@ export interface RecentImport {
   ai_status: string
   ai_confidence: number | null
   ai_model: string | null
+  storage_path: string
   created_at: string
   building_count: number
 }
@@ -27,7 +28,7 @@ export function useRecentImports(): UseRecentImports {
   const fetchImports = async () => {
     const { data, error } = await supabaseBrowser
       .from('documents')
-      .select('id, file_name, file_type, file_size_bytes, document_type, ai_status, ai_confidence, ai_model, created_at')
+      .select('id, file_name, file_type, file_size_bytes, document_type, ai_status, ai_confidence, ai_model, storage_path, created_at')
       .order('created_at', { ascending: false })
       .limit(20);
 

@@ -33,6 +33,7 @@ app.post('/process', async (c) => {
       try { await stream.writeSSE({ event: 'ping', data: '' }); } catch { /* closed */ }
     }, 10000);
 
+    let docId: string | null = null;
     try {
       await send('progress', { stage: 'uploading', message: 'Received file...', step: 1, total: 3 });
 
@@ -72,6 +73,7 @@ app.post('/process', async (c) => {
         await send('error', { message: 'Failed to create document record' });
         return;
       }
+      docId = docRow.id;
 
       // ── STEP 1: Route ──
       await send('progress', { stage: 'routing', message: 'Identifying document type...', step: 1, total: 3 });
@@ -99,6 +101,10 @@ app.post('/process', async (c) => {
           document_type: 'floor_plan',
         }).eq('id', docRow.id);
 
+        // Generate signed URL for document preview
+        const { data: signedUrl } = await supabase.storage.from('documents').createSignedUrl(storagePath, 3600);
+        const previewUrl = signedUrl?.signedUrl || null;
+
         if (duplicates.length > 0) {
           await send('result', {
             ...extraction,
@@ -106,9 +112,9 @@ app.post('/process', async (c) => {
             _duplicates: duplicates,
             _auto_saved: false,
             _lobby_sign: result,
+            _preview_url: previewUrl,
           });
         } else {
-          // Auto-save
           await saveExtractionToDatabase(extraction, docRow.id);
           await send('result', {
             ...extraction,
@@ -116,6 +122,7 @@ app.post('/process', async (c) => {
             _duplicates: [],
             _auto_saved: true,
             _lobby_sign: result,
+            _preview_url: previewUrl,
           });
         }
 
@@ -204,11 +211,19 @@ app.post('/process', async (c) => {
         await send('done', {});
 
       } else {
-        await send('error', { message: 'Unrecognized document type. Please upload a photo of a building lobby directory sign.' });
+        await supabase.from('documents').update({ ai_status: 'failed' }).eq('id', docRow.id);
+        await send('error', { message: 'Unrecognized document type. Please upload a photo of a building lobby directory sign or a vacancy listing PDF.' });
       }
 
     } catch (err) {
       console.error('[IMPORT ERROR]', err);
+      // Mark document as failed
+      if (docId) {
+        await supabase.from('documents').update({
+          ai_status: 'failed',
+          ai_raw_output: { error: err instanceof Error ? err.message : 'Unknown error' },
+        }).eq('id', docId);
+      }
       await send('error', { message: err instanceof Error ? err.message : 'Unknown error' });
     } finally {
       clearInterval(keepAlive);

@@ -49,6 +49,8 @@ export default function ImportPage() {
   const [expandedBuilding, setExpandedBuilding] = useState<number | null>(null)
   const [duplicateDecisions, setDuplicateDecisions] = useState<Record<number, { action: DuplicateAction; existing_id?: string }>>({})
   const [saving, setSaving] = useState(false)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [showPreview, setShowPreview] = useState(false)
   const [lobbySign, setLobbySign] = useState<{ building_name: string; building_name_en: string; address: string; city: string; city_en: string; entrance: string; floor_count: number; floors: { floor_number: string; tenants: string[]; has_vacancy: boolean }[] }[] | null>(null)
   const [dragOver, setDragOver] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
@@ -144,6 +146,7 @@ export default function ImportPage() {
                 setDuplicates(data._duplicates ?? [])
                 setAutoSaved(data._auto_saved ?? false)
                 setLobbySign(data._lobby_sign ?? null)
+                setPreviewUrl(data._preview_url ?? null)
                 setProcessing({ stage: "done", message: data._auto_saved ? "Imported successfully" : "Extraction complete — review duplicates" })
               } else if (eventType === "error") {
                 setProcessing({ stage: "error", message: data.message })
@@ -176,6 +179,8 @@ export default function ImportPage() {
     setErrorMessage("")
     setWarningMessage("")
     setLobbySign(null)
+    setPreviewUrl(null)
+    setShowPreview(false)
     setExpandedBuilding(null)
     setDuplicateDecisions({})
     setSaving(false)
@@ -460,10 +465,27 @@ export default function ImportPage() {
                   >
                     <div className="flex items-center justify-between">
                       <h3 className="text-base font-semibold">{t("parsed")}</h3>
-                      <span className="text-xs text-muted-foreground px-2.5 py-1 rounded-full glass">
-                        {lobbySign ? "lobby sign" : result.document_type.replace(/_/g, " ")} · {result.language}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        {previewUrl && (
+                          <button
+                            onClick={() => setShowPreview(!showPreview)}
+                            className="text-xs text-primary hover:text-primary/80 transition-colors px-2.5 py-1 rounded-full glass"
+                          >
+                            {showPreview ? "Hide Original" : "View Original"}
+                          </button>
+                        )}
+                        <span className="text-xs text-muted-foreground px-2.5 py-1 rounded-full glass">
+                          {lobbySign ? "lobby sign" : result.document_type.replace(/_/g, " ")} · {result.language}
+                        </span>
+                      </div>
                     </div>
+
+                    {/* Document preview */}
+                    {showPreview && previewUrl && (
+                      <div className="glass rounded-xl overflow-hidden">
+                        <img src={previewUrl} alt="Original document" className="w-full max-h-[400px] object-contain bg-black/20" />
+                      </div>
+                    )}
 
                     {/* ── LOBBY SIGN: Stacking plan preview ── */}
                     {lobbySign && lobbySign.length > 0 && (

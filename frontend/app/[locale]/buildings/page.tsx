@@ -16,7 +16,7 @@ import LanguageSwitcher from "@/components/LanguageSwitcher"
 import ThemeToggle from "@/components/ThemeToggle"
 import { BuildingsTableSkeleton, BuildingsCardsSkeleton } from "@/components/LoadingSkeleton"
 
-type SortKey = "name" | "class" | "totalSqm" | "vacantSqm" | "occupancy" | "askingPrice" | "floorCount"
+type SortKey = "name" | "class" | "area" | "totalSqm" | "vacantSqm" | "occupancy" | "askingPrice" | "floorCount"
 type SortDir = "asc" | "desc"
 
 const AREA_TRANSLATION_KEYS: Record<string, string> = {
@@ -50,12 +50,6 @@ export default function BuildingsPage() {
     }
   }
 
-  const areaCycle = ["all", "north", "center", "south"]
-  const cycleArea = () => {
-    const idx = areaCycle.indexOf(areaFilter)
-    setAreaFilter(areaCycle[(idx + 1) % areaCycle.length])
-  }
-
   const selectedCity = cities.find((c) => c.city === city)
   const cityLabel = city === "all"
     ? (locale === "he" ? "כל הערים" : "All Cities")
@@ -79,6 +73,7 @@ export default function BuildingsPage() {
       switch (sortKey) {
         case "name": cmp = a.name.localeCompare(b.name, "he"); break
         case "class": cmp = a.class.localeCompare(b.class); break
+        case "area": cmp = a.area.localeCompare(b.area); break
         case "totalSqm": cmp = a.totalSqm - b.totalSqm; break
         case "vacantSqm": cmp = a.vacantSqm - b.vacantSqm; break
         case "occupancy": cmp = a.occupancy - b.occupancy; break
@@ -220,38 +215,29 @@ export default function BuildingsPage() {
                     {([
                       { key: "name" as SortKey, label: t("colName"), align: "text-start", px: "px-5" },
                       { key: "class" as SortKey, label: t("colClass"), align: "text-start", px: "px-4" },
-                      { key: null, label: t("colArea"), align: "text-start", px: "px-4", filterClick: true },
+                      { key: "area" as SortKey, label: t("colArea"), align: "text-start", px: "px-4" },
                       { key: "totalSqm" as SortKey, label: t("colTotalSqm"), align: "text-end", px: "px-4" },
                       { key: "vacantSqm" as SortKey, label: t("colVacantSqm"), align: "text-end", px: "px-4" },
                       { key: "occupancy" as SortKey, label: t("colOccupancy"), align: "text-end", px: "px-4" },
                       { key: "askingPrice" as SortKey, label: t("colPrice"), align: "text-end", px: "px-4" },
                       { key: "floorCount" as SortKey, label: t("colFloors"), align: "text-end", px: "px-5" },
-                    ] as const).map((col, i) => {
-                      const isFilterCol = "filterClick" in col && col.filterClick
-                      const isClickable = col.key || isFilterCol
-                      return (
-                        <th
-                          key={i}
-                          onClick={col.key ? () => toggleSort(col.key!) : isFilterCol ? cycleArea : undefined}
-                          className={cn(
-                            `${col.align} text-xs text-muted-foreground uppercase tracking-[0.15em] font-medium ${col.px} py-4`,
-                            isClickable && "cursor-pointer hover:text-foreground transition-colors select-none"
+                    ] as const).map((col, i) => (
+                      <th
+                        key={i}
+                        onClick={() => toggleSort(col.key)}
+                        className={cn(
+                          `${col.align} text-xs text-muted-foreground uppercase tracking-[0.15em] font-medium ${col.px} py-4`,
+                          "cursor-pointer hover:text-foreground transition-colors select-none"
+                        )}
+                      >
+                        <span className="inline-flex items-center gap-1">
+                          {col.label}
+                          {sortKey === col.key && (
+                            <ArrowUpDown className="w-3 h-3" />
                           )}
-                        >
-                          <span className="inline-flex items-center gap-1">
-                            {col.label}
-                            {isFilterCol && areaFilter !== "all" && (
-                              <span className="text-[10px] normal-case tracking-normal text-primary font-semibold">
-                                {tF(AREA_TRANSLATION_KEYS[areaFilter])}
-                              </span>
-                            )}
-                            {col.key && sortKey === col.key && (
-                              <ArrowUpDown className="w-3 h-3" />
-                            )}
-                          </span>
-                        </th>
-                      )
-                    })}
+                        </span>
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
