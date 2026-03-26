@@ -324,7 +324,7 @@ export default function LandingPage() {
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
             >
-              <Link href="/dashboard" className="block group">
+              <Link href="/buildings" className="block group">
                 <div className="glass-strong rounded-2xl p-7 h-full transition-all duration-500 glow-hover">
                   <div className="flex items-start gap-4 mb-5">
                     <div className="w-10 h-10 rounded-xl bg-lease-green/10 border border-lease-green/15 flex items-center justify-center shrink-0">
