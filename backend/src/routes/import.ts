@@ -111,26 +111,15 @@ app.post('/process', async (c) => {
         const { data: signedUrl } = await supabase.storage.from('documents').createSignedUrl(storagePath, 3600);
         const previewUrl = signedUrl?.signedUrl || null;
 
-        if (duplicates.length > 0) {
-          await send('result', {
-            ...extraction,
-            _document_id: docRow.id,
-            _duplicates: duplicates,
-            _auto_saved: false,
-            _lobby_sign: result,
-            _preview_url: previewUrl,
-          });
-        } else {
-          await saveExtractionToDatabase(extraction, docRow.id);
-          await send('result', {
-            ...extraction,
-            _document_id: docRow.id,
-            _duplicates: [],
-            _auto_saved: true,
-            _lobby_sign: result,
-            _preview_url: previewUrl,
-          });
-        }
+        // Never auto-save lobby signs — broker must review and edit first
+        await send('result', {
+          ...extraction,
+          _document_id: docRow.id,
+          _duplicates: duplicates,
+          _auto_saved: false,
+          _lobby_sign: result,
+          _preview_url: previewUrl,
+        });
 
         await send('done', {});
 
