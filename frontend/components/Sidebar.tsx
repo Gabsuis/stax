@@ -1,13 +1,15 @@
 "use client"
 
+import { useState } from "react"
 import { useTranslations, useLocale } from "next-intl"
 import { Link, usePathname } from "@/i18n/navigation"
 import { Building } from "@/types"
 import { formatSqm } from "@/lib/utils"
-import { PenTool, Building2, Sparkles, Database } from "lucide-react"
+import {
+  PenTool, Building2, Sparkles, Database, Users, ChevronDown,
+  Handshake, UserSearch, BriefcaseBusiness, Receipt
+} from "lucide-react"
 import Image from "next/image"
-
-
 
 interface Props {
   buildings: Building[]
@@ -17,17 +19,38 @@ export default function Sidebar({ buildings }: Props) {
   const t = useTranslations()
   const locale = useLocale()
   const pathname = usePathname()
+  const [crmOpen, setCrmOpen] = useState(
+    pathname.startsWith("/crm")
+  )
   const totalVacant = buildings.reduce((sum, b) => sum + b.vacantSqm, 0)
   const avgOcc = buildings.length
     ? Math.round((buildings.reduce((sum, b) => sum + b.occupancy, 0) / buildings.length) * 100)
     : 0
 
-  const nav = [
+  const mainNav = [
     { href: "/buildings" as const, label: t("nav.buildings"), icon: Building2 },
     { href: "/editor" as const, label: t("nav.editor"), icon: PenTool },
     { href: "/import" as const, label: t("nav.import"), icon: Database },
-    { href: "/dashboard" as const, label: t("nav.dashboard"), icon: Sparkles, special: true },
+    { href: "/dashboard" as const, label: t("nav.dashboard"), icon: Sparkles },
   ]
+
+  const crmItems = [
+    { href: "/crm/contacts" as const, label: t("nav.contacts"), icon: Users },
+    { href: "/crm/deals" as const, label: t("nav.deals"), icon: Handshake },
+    { href: "/crm/leads" as const, label: t("nav.leads"), icon: UserSearch },
+    { href: "/crm/managed-accounts" as const, label: t("nav.managedAccounts"), icon: BriefcaseBusiness },
+  ]
+
+  const isCrmActive = pathname.startsWith("/crm")
+
+  function navLinkClass(href: string) {
+    const isActive = pathname === href
+    return `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${
+      isActive
+        ? "bg-primary/8 text-foreground font-medium"
+        : "text-muted-foreground hover:text-foreground hover:bg-primary/5"
+    }`
+  }
 
   return (
     <aside className="w-[220px] h-screen sticky top-0 shrink-0 border-s border-border bg-sidebar flex flex-col">
@@ -45,46 +68,47 @@ export default function Sidebar({ buildings }: Props) {
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-3 space-y-0.5">
-        {nav.map((item) => {
-          const isActive = pathname === item.href
-          const isSpecial = "special" in item && item.special
+      <nav className="flex-1 px-3 space-y-0.5 overflow-y-auto">
+        {mainNav.map((item) => (
+          <Link key={item.href} href={item.href} className={navLinkClass(item.href)}>
+            <item.icon className="w-4 h-4" strokeWidth={pathname === item.href ? 2 : 1.5} />
+            {item.label}
+          </Link>
+        ))}
 
-          if (isSpecial) {
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-full text-sm transition-all duration-300 overflow-hidden bg-neutral-900 dark:bg-neutral-800 ${
-                  isActive ? "font-medium" : "hover:opacity-90"
-                }`}
-              >
-                <item.icon
-                  className="w-4 h-4 relative z-10 text-amber-400"
-                  strokeWidth={isActive ? 2 : 1.5}
-                />
-                <span className="relative z-10 bg-gradient-to-r from-amber-300 to-yellow-400 bg-clip-text text-transparent font-semibold">
+        {/* CRM Dropdown */}
+        <div className="pt-3 mt-3 border-t border-border/50">
+          <button
+            onClick={() => setCrmOpen(!crmOpen)}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 w-full ${
+              isCrmActive
+                ? "bg-primary/8 text-foreground font-medium"
+                : "text-muted-foreground hover:text-foreground hover:bg-primary/5"
+            }`}
+          >
+            <Users className="w-4 h-4" strokeWidth={isCrmActive ? 2 : 1.5} />
+            <span className="flex-1 text-start">{t("nav.crm")}</span>
+            <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${crmOpen ? "" : "-rotate-90"}`} />
+          </button>
+          {crmOpen && (
+            <div className="ms-4 mt-0.5 space-y-0.5">
+              {crmItems.map((item) => (
+                <Link key={item.href} href={item.href} className={navLinkClass(item.href)}>
+                  <item.icon className="w-3.5 h-3.5" strokeWidth={pathname === item.href ? 2 : 1.5} />
                   {item.label}
-                </span>
-              </Link>
-            )
-          }
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
 
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${
-                isActive
-                  ? "bg-primary/8 text-foreground font-medium"
-                  : "text-muted-foreground hover:text-foreground hover:bg-primary/5"
-              }`}
-            >
-              <item.icon className="w-4 h-4" strokeWidth={isActive ? 2 : 1.5} />
-              {item.label}
-            </Link>
-          )
-        })}
+        {/* Invoicing */}
+        <div className="pt-3 mt-3 border-t border-border/50">
+          <Link href="/invoicing" className={navLinkClass("/invoicing")}>
+            <Receipt className="w-4 h-4" strokeWidth={pathname === "/invoicing" ? 2 : 1.5} />
+            {t("nav.invoicing")}
+          </Link>
+        </div>
       </nav>
 
       {/* Portfolio KPIs */}
@@ -101,8 +125,6 @@ export default function Sidebar({ buildings }: Props) {
             {avgOcc}%
           </div>
         </div>
-
-
       </div>
     </aside>
   )

@@ -253,7 +253,7 @@ export default function LandingPage() {
                   </div>
                   <div className="w-px h-10 bg-border" />
                   <div>
-                    <div className="text-3xl font-display data-value">{t("landing.statChurn")}</div>
+                    <div className="text-3xl font-display data-value text-lease-green">{t("landing.statChurn")}</div>
                     <div className="text-xs text-muted-foreground uppercase tracking-[0.15em] mt-1">{t("landing.statChurnLabel")}</div>
                   </div>
                   <div className="w-px h-10 bg-border" />
