@@ -101,6 +101,32 @@ function calculateSimilarity(
     return { similarity: 1.0, reason: 'exact_name_en' };
   }
 
+  // Fuzzy Hebrew name match (>=80% similarity)
+  if (eName && dbName) {
+    const fuzzy = stringSimilarity(eName, dbName);
+    if (fuzzy >= 0.8) {
+      return { similarity: fuzzy, reason: 'fuzzy_name' };
+    }
+  }
+
+  // Fuzzy English name match (>=80% similarity)
+  if (eNameEn && dbNameEn) {
+    const fuzzy = stringSimilarity(eNameEn, dbNameEn);
+    if (fuzzy >= 0.8) {
+      return { similarity: fuzzy, reason: 'fuzzy_name_en' };
+    }
+  }
+
+  // Cross-language: extracted Hebrew vs DB English or vice versa
+  if (eName && dbNameEn) {
+    const fuzzy = stringSimilarity(eName, dbNameEn);
+    if (fuzzy >= 0.7) return { similarity: fuzzy, reason: 'cross_lang' };
+  }
+  if (eNameEn && dbName) {
+    const fuzzy = stringSimilarity(eNameEn, dbName);
+    if (fuzzy >= 0.7) return { similarity: fuzzy, reason: 'cross_lang' };
+  }
+
   // Name contains (one is substring of the other)
   if (eName && dbName && (eName.includes(dbName) || dbName.includes(eName))) {
     const sameCity = eCity === dbCity || !eCity || !dbCity;
@@ -112,13 +138,15 @@ function calculateSimilarity(
     return { similarity: 0.8, reason: 'name_en_contains' };
   }
 
-  // Address match + same city
-  if (eAddress && dbAddress && eCity === dbCity) {
-    // Extract street number from address for comparison
+  // Address match (with or without city — lobby signs often have no city)
+  if (eAddress && dbAddress) {
     const eStreet = extractStreet(eAddress);
     const dbStreet = extractStreet(dbAddress);
-    if (eStreet && dbStreet && eStreet === dbStreet) {
-      return { similarity: 0.75, reason: 'address_match' };
+    if (eStreet && dbStreet) {
+      const addrSim = stringSimilarity(eStreet, dbStreet);
+      if (addrSim >= 0.8) {
+        return { similarity: addrSim * 0.9, reason: 'address_match' };
+      }
     }
   }
 
@@ -133,6 +161,31 @@ function calculateSimilarity(
   }
 
   return { similarity: 0, reason: '' };
+}
+
+/** Levenshtein-based string similarity: 0 (different) to 1 (identical) */
+function stringSimilarity(a: string, b: string): number {
+  if (a === b) return 1;
+  const lenA = a.length;
+  const lenB = b.length;
+  if (!lenA || !lenB) return 0;
+
+  const matrix: number[][] = [];
+  for (let i = 0; i <= lenA; i++) matrix[i] = [i];
+  for (let j = 0; j <= lenB; j++) matrix[0][j] = j;
+
+  for (let i = 1; i <= lenA; i++) {
+    for (let j = 1; j <= lenB; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      matrix[i][j] = Math.min(
+        matrix[i - 1][j] + 1,
+        matrix[i][j - 1] + 1,
+        matrix[i - 1][j - 1] + cost,
+      );
+    }
+  }
+
+  return 1 - matrix[lenA][lenB] / Math.max(lenA, lenB);
 }
 
 function normalize(s: string): string {

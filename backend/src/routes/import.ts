@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { streamSSE } from 'hono/streaming';
-import { routeDocument, extractLobbySign, createVacancyRunner, type LobbySignResult } from '../agents/document-agent';
+import { routeDocument, extractLobbySign, verifyLobbySign, fillFloorGaps, createVacancyRunner, type LobbySignResult } from '../agents/document-agent';
 import { stringifyContent } from '@google/adk';
 import { supabase } from '../lib/supabase';
 import { saveExtractionToDatabase } from '../lib/supabase-import';
@@ -82,12 +82,18 @@ app.post('/process', async (c) => {
 
       if (docType === 'lobby_sign') {
         // ── STEP 2: Extract lobby sign ──
-        await send('progress', { stage: 'extracting', message: 'Reading lobby sign...', step: 2, total: 3 });
-        const result = await extractLobbySign(base64, file.type);
+        await send('progress', { stage: 'extracting', message: 'Reading lobby sign...', step: 2, total: 4 });
+        let result = await extractLobbySign(base64, file.type);
         console.log(`[EXTRACT] ${result.length} building(s): ${result.map(b => b.building_name || b.building_name_en || '?').join(', ')}`);
 
-        // ── STEP 3: Check duplicates + return for preview ──
-        await send('progress', { stage: 'checking', message: 'Checking for duplicates...', step: 3, total: 3 });
+        // ── STEP 3: Verify + fix edge cases ──
+        await send('progress', { stage: 'verifying', message: 'Verifying results...', step: 3, total: 4 });
+        result = await verifyLobbySign(result);
+        result = fillFloorGaps(result);
+        console.log(`[VERIFIED] ${result.length} building(s), floors: ${result.map(b => b.floors.length).join(', ')}`);
+
+        // ── STEP 4: Check duplicates + return for preview ──
+        await send('progress', { stage: 'checking', message: 'Checking for duplicates...', step: 4, total: 4 });
 
         // Convert to our standard extraction format for the frontend
         const extraction = lobbySignToExtraction(result);
