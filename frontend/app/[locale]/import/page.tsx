@@ -210,14 +210,48 @@ export default function ImportPage() {
         return { extracted_index: i, action: "insert" as DuplicateAction }
       })
 
+      // For lobby signs, rebuild extraction.buildings from the editor state
+      // so user edits (name, city, tenants, etc.) are actually saved
+      let extraction = result
+      if (lobbySign && editorBuildings.length > 0) {
+        extraction = {
+          ...result,
+          buildings: editorBuildings.map((b) => ({
+            name: b.name || b.nameEn || '',
+            name_en: b.nameEn || undefined,
+            address: b.address || undefined,
+            city: b.city || undefined,
+            city_en: b.cityEn || undefined,
+            class: undefined,
+            floor_count: b.floorCount || undefined,
+            floors: b.floors.map((f) => ({
+              floor_number: f.floorNumber,
+              total_sqm: f.tenants.reduce((sum, t) => sum + (t.sqm || 0), 0),
+              blocks: f.tenants.map((t) => ({
+                tenant_name: t.isVacant ? undefined : t.name || undefined,
+                sqm: t.sqm || 0,
+                status: (t.isVacant ? 'vacant' : 'occupied') as 'vacant' | 'occupied',
+                lease_start: t.leaseStart || undefined,
+                lease_end: t.leaseEnd || undefined,
+                rent_per_sqm: t.rentPerSqm || undefined,
+                management_fee_sqm: t.managementFeeSqm || undefined,
+                delivery_condition: t.deliveryCondition || undefined,
+                is_sublease: t.isSublease || undefined,
+                sublease_tenant: t.subleaseTenant || undefined,
+                notes: t.notes || undefined,
+              })),
+            })),
+            _confidence: 0.9,
+          })),
+        }
+      }
+
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ""}/import/save`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           document_id: documentId,
-          extraction: lobbySign && editorBuildings.length > 0
-            ? { ...result, buildings: result.buildings, _lobby_sign: editorToLobbySign(editorBuildings) }
-            : result,
+          extraction,
           decisions,
         }),
       })
