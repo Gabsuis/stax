@@ -239,6 +239,14 @@ export default function ImportPage() {
   const isProcessing = processing.stage !== "idle" && processing.stage !== "done" && processing.stage !== "error"
   const canProcess = source === "document" ? !!file : source === "paste" ? !!text.trim() : false
 
+  // Validate that every building has at least a name and city before allowing save
+  const hasMissingFields = result ? (() => {
+    if (lobbySign && editorBuildings.length > 0) {
+      return editorBuildings.some(b => !b.name.trim() || (!b.city.trim() && !b.cityEn.trim()))
+    }
+    return result.buildings.some(b => !b.name?.trim() || (!b.city?.trim() && !b.city_en?.trim()))
+  })() : false
+
   const confidenceColor = (c?: number) => {
     if (!c) return "text-muted-foreground"
     if (c >= 0.8) return "text-lease-green"
@@ -669,24 +677,32 @@ export default function ImportPage() {
                         </a>
                       </motion.div>
                     ) : (
-                      <Button
-                        onClick={handleSaveWithDecisions}
-                        disabled={saving || (duplicates.length > 0 && Object.keys(duplicateDecisions).length < duplicates.length)}
-                        className="w-full"
-                      >
-                        {saving ? (
-                          <>
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            Saving...
-                          </>
-                        ) : duplicates.length > 0 ? (
-                          Object.keys(duplicateDecisions).length < duplicates.length
-                            ? `Review all duplicates (${Object.keys(duplicateDecisions).length}/${duplicates.length})`
-                            : "Save with selected actions"
-                        ) : (
-                          t("importBtn")
+                      <>
+                        {hasMissingFields && (
+                          <p className="text-xs text-lease-red flex items-center gap-1.5">
+                            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                            Every building must have a name and city before saving.
+                          </p>
                         )}
-                      </Button>
+                        <Button
+                          onClick={handleSaveWithDecisions}
+                          disabled={saving || hasMissingFields || (duplicates.length > 0 && Object.keys(duplicateDecisions).length < duplicates.length)}
+                          className="w-full"
+                        >
+                          {saving ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              Saving...
+                            </>
+                          ) : duplicates.length > 0 ? (
+                            Object.keys(duplicateDecisions).length < duplicates.length
+                              ? `Review all duplicates (${Object.keys(duplicateDecisions).length}/${duplicates.length})`
+                              : "Save with selected actions"
+                          ) : (
+                            t("importBtn")
+                          )}
+                        </Button>
+                      </>
                     )}
                   </motion.div>
                 )}

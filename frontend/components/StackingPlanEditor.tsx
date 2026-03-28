@@ -1,8 +1,9 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useRef, useEffect } from "react"
 import { Plus, Trash2, X, ChevronDown, ChevronUp, Scissors } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useCities, type CityInfo } from "@/lib/hooks/useCities"
 import type { DeliveryCondition } from "@/types"
 
 // ── Types ──
@@ -140,6 +141,97 @@ const deliveryLabels: Record<string, string> = {
   renovation_required: 'Renovation Required',
 }
 
+// ── City Combobox ──
+
+function CityCombobox({
+  value,
+  onChange,
+  cities,
+  isHe,
+  hasError,
+}: {
+  value: string
+  onChange: (city: string, cityEn: string) => void
+  cities: CityInfo[]
+  isHe: boolean
+  hasError: boolean
+}) {
+  const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  const filtered = cities.filter(c =>
+    !query || c.city.includes(query) || (c.city_en?.toLowerCase().includes(query.toLowerCase()))
+  )
+  const hasExactMatch = cities.some(c => c.city === query || c.city_en?.toLowerCase() === query.toLowerCase())
+
+  return (
+    <div className="relative" ref={ref}>
+      <input
+        type="text"
+        value={open ? query : value}
+        onFocus={() => { setOpen(true); setQuery(value) }}
+        onChange={(e) => {
+          setQuery(e.target.value)
+          setOpen(true)
+          onChange(e.target.value, '')
+        }}
+        onClick={(e) => e.stopPropagation()}
+        placeholder={isHe ? "עיר..." : "City..."}
+        className={cn(
+          "text-xs text-muted-foreground bg-transparent border-b hover:border-border focus:border-primary focus:outline-none transition-colors w-28",
+          hasError ? "border-lease-red/60 placeholder:text-lease-red/40" : "border-transparent"
+        )}
+      />
+      {open && (filtered.length > 0 || (query.trim() && !hasExactMatch)) && (
+        <div className="absolute top-full start-0 mt-1 z-50 w-48 glass-strong rounded-lg border border-border shadow-2xl overflow-hidden">
+          <div className="max-h-40 overflow-y-auto">
+            {filtered.map((c) => (
+              <button
+                key={c.city}
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onChange(c.city, c.city_en || '')
+                  setQuery(isHe ? c.city : (c.city_en || c.city))
+                  setOpen(false)
+                }}
+                className="w-full text-start px-3 py-1.5 text-xs hover:bg-white/[0.06] transition-colors flex items-center justify-between"
+              >
+                <span>{isHe ? c.city : (c.city_en || c.city)}</span>
+                {c.count > 0 && <span className="text-muted-foreground/50">{c.count}</span>}
+              </button>
+            ))}
+            {query.trim() && !hasExactMatch && (
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onChange(query, '')
+                  setOpen(false)
+                }}
+                className="w-full text-start px-3 py-1.5 text-xs hover:bg-white/[0.06] transition-colors text-primary border-t border-border/30"
+              >
+                + {isHe ? `הוסף "${query}"` : `Add "${query}"`}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Component ──
 
 interface StackingPlanEditorProps {
@@ -159,6 +251,7 @@ export default function StackingPlanEditor({
   compact = false,
   locale = 'en',
 }: StackingPlanEditorProps) {
+  const { cities } = useCities()
   const [expandedBuilding, setExpandedBuilding] = useState<string | null>(
     buildings.length === 1 ? buildings[0]?.id : null
   )
@@ -336,7 +429,7 @@ export default function StackingPlanEditor({
                             onChange={(e) => updateBuilding(building.id, { name: e.target.value })}
                             onClick={(e) => e.stopPropagation()}
                             placeholder={isHe ? "שם הבניין..." : "Building name..."}
-                            className="text-base font-display tracking-tight bg-transparent border-b border-transparent hover:border-border focus:border-primary focus:outline-none transition-colors flex-1 min-w-0"
+                            className={cn("text-base font-display tracking-tight bg-transparent border-b hover:border-border focus:border-primary focus:outline-none transition-colors flex-1 min-w-0", !building.name.trim() ? "border-lease-red/60 placeholder:text-lease-red/40" : "border-transparent")}
                           />
                           {buildings.length > 1 && (
                             <button onClick={(e) => { e.stopPropagation(); removeBuilding(building.id) }} className="p-1 hover:bg-white/[0.05] rounded transition-colors shrink-0">
@@ -346,7 +439,13 @@ export default function StackingPlanEditor({
                         </div>
                         <div className="flex gap-2">
                           <input type="text" value={building.address} onChange={(e) => updateBuilding(building.id, { address: e.target.value })} onClick={(e) => e.stopPropagation()} placeholder={isHe ? "כתובת..." : "Address..."} className="text-xs text-muted-foreground bg-transparent border-b border-transparent hover:border-border focus:border-primary focus:outline-none transition-colors flex-1 min-w-0" />
-                          <input type="text" value={building.city || building.cityEn} onChange={(e) => updateBuilding(building.id, { city: e.target.value })} onClick={(e) => e.stopPropagation()} placeholder={isHe ? "עיר..." : "City..."} className="text-xs text-muted-foreground bg-transparent border-b border-transparent hover:border-border focus:border-primary focus:outline-none transition-colors w-28" />
+                          <CityCombobox
+                            value={isHe ? (building.city || building.cityEn) : (building.cityEn || building.city)}
+                            onChange={(city, cityEn) => updateBuilding(building.id, { city, cityEn: cityEn || building.cityEn })}
+                            cities={cities}
+                            isHe={isHe}
+                            hasError={!(building.city || building.cityEn)?.trim()}
+                          />
                           <input type="text" value={building.entrance} onChange={(e) => updateBuilding(building.id, { entrance: e.target.value })} onClick={(e) => e.stopPropagation()} placeholder={isHe ? "כניסה..." : "Entrance..."} className="text-xs text-muted-foreground bg-transparent border-b border-transparent hover:border-border focus:border-primary focus:outline-none transition-colors w-20" />
                         </div>
                       </div>

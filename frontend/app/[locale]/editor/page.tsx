@@ -7,7 +7,7 @@ import { useBuildings } from "@/lib/hooks/useBuildings"
 import LanguageSwitcher from "@/components/LanguageSwitcher"
 import ThemeToggle from "@/components/ThemeToggle"
 import StackingPlanEditor, { createBlankBuilding, type EditorBuilding } from "@/components/StackingPlanEditor"
-import { FolderOpen, FilePlus } from "lucide-react"
+import { FolderOpen, FilePlus, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { supabaseBrowser } from "@/lib/supabase-client"
 
@@ -142,12 +142,22 @@ export default function EditorPage() {
             locale={locale}
           />
 
-          {/* Save feedback */}
-          {saved && (
-            <div className="mt-4 text-center text-sm text-lease-green">
-              {locale === "he" ? "נשמר בהצלחה" : "Saved successfully"}
-            </div>
-          )}
+          {/* Save area */}
+          <div className="mt-6 flex flex-col items-center gap-3">
+            {editorBuildings.some(b => !b.name.trim() || (!b.city.trim() && !b.cityEn.trim())) && (
+              <p className="text-xs text-lease-red flex items-center gap-1.5">
+                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                {locale === "he"
+                  ? "כל בניין חייב שם ועיר לפני שמירה."
+                  : "Every building must have a name and city before saving."}
+              </p>
+            )}
+            {saved && (
+              <div className="text-sm text-lease-green">
+                {locale === "he" ? "נשמר בהצלחה" : "Saved successfully"}
+              </div>
+            )}
+          </div>
         </div>
       </main>
     </div>
