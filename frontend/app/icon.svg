@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- Top cube -->
+  <polygon points="16,2 24,6.5 16,11 8,6.5" fill="#1a1a1a"/>
+  <polygon points="16,11 24,6.5 24,13.5 16,18" fill="#333"/>
+  <polygon points="16,11 8,6.5 8,13.5 16,18" fill="#666"/>
+  <!-- Bottom-left cube -->
+  <polygon points="8,13.5 16,18 8,22.5 0,18" fill="#1a1a1a"/>
+  <polygon points="8,22.5 16,18 16,25 8,29.5" fill="#333"/>
+  <polygon points="8,22.5 0,18 0,25 8,29.5" fill="#666"/>
+  <!-- Bottom-right cube -->
+  <polygon points="24,13.5 32,18 24,22.5 16,18" fill="#1a1a1a"/>
+  <polygon points="24,22.5 32,18 32,25 24,29.5" fill="#333"/>
+  <polygon points="24,22.5 16,18 16,25 24,29.5" fill="#666"/>
+</svg>
