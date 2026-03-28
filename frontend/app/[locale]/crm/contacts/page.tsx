@@ -8,39 +8,47 @@ import LanguageSwitcher from "@/components/LanguageSwitcher"
 import ThemeToggle from "@/components/ThemeToggle"
 import { Search, Plus, Upload, UserPlus } from "lucide-react"
 
+const BROKERS = ["Yoram", "Kobi", "Larry", "Amy", "Phil", "Nehama", "Jeremy"] as const
+type Broker = typeof BROKERS[number]
+
 interface Contact {
   id: string
   company: string
   contactName: string
   phone: string
   email: string
-  brokerTag: string
+  brokerTag: Broker
   comments: string
   type: "landlord" | "tenant"
 }
 
-const DEMO_CONTACTS: Contact[] = [
+const INITIAL_CONTACTS: Contact[] = [
   { id: "1", company: "Ampa Capital", contactName: "David Cohen", phone: "+972-54-123-4567", email: "david@ampa.co.il", brokerTag: "Yoram", comments: "Key account, responsive", type: "landlord" },
   { id: "2", company: "Gav-Yam Group", contactName: "Sarah Levi", phone: "+972-52-987-6543", email: "sarah@gavyam.com", brokerTag: "Yoram", comments: "Large portfolio owner", type: "landlord" },
-  { id: "3", company: "Azrieli Group", contactName: "Moshe Azrieli", phone: "+972-3-608-1500", email: "moshe@azrieli.com", brokerTag: "Nir", comments: "", type: "landlord" },
-  { id: "4", company: "Alony Hetz", contactName: "Roni Hetz", phone: "+972-3-752-2222", email: "roni@alony-hetz.co.il", brokerTag: "Yoram", comments: "Expanding portfolio", type: "landlord" },
-  { id: "5", company: "Menivim REIT", contactName: "Yael Sharoni", phone: "+972-3-611-3344", email: "yael@menivim.co.il", brokerTag: "Nir", comments: "", type: "landlord" },
+  { id: "3", company: "Azrieli Group", contactName: "Moshe Azrieli", phone: "+972-3-608-1500", email: "moshe@azrieli.com", brokerTag: "Kobi", comments: "", type: "landlord" },
+  { id: "4", company: "Alony Hetz", contactName: "Roni Hetz", phone: "+972-3-752-2222", email: "roni@alony-hetz.co.il", brokerTag: "Amy", comments: "Expanding portfolio", type: "landlord" },
+  { id: "5", company: "Menivim REIT", contactName: "Yael Sharoni", phone: "+972-3-611-3344", email: "yael@menivim.co.il", brokerTag: "Phil", comments: "", type: "landlord" },
   { id: "6", company: "AppsFlyer", contactName: "Oren Kaniel", phone: "+972-54-333-2211", email: "oren@appsflyer.com", brokerTag: "Yoram", comments: "Looking to expand, 3 floors min", type: "tenant" },
-  { id: "7", company: "Monday.com", contactName: "Roy Mann", phone: "+972-52-555-7890", email: "roy@monday.com", brokerTag: "Nir", comments: "Lease expiring Q2 2027", type: "tenant" },
-  { id: "8", company: "Wix.com", contactName: "Avishai Abrahami", phone: "+972-3-545-4900", email: "avishai@wix.com", brokerTag: "Yoram", comments: "HQ relocation planned", type: "tenant" },
-  { id: "9", company: "IronSource (Unity)", contactName: "Tomer Bar-Zeev", phone: "+972-54-222-1100", email: "tomer@unity.com", brokerTag: "Nir", comments: "Downsizing after merger", type: "tenant" },
+  { id: "7", company: "Monday.com", contactName: "Roy Mann", phone: "+972-52-555-7890", email: "roy@monday.com", brokerTag: "Larry", comments: "Lease expiring Q2 2027", type: "tenant" },
+  { id: "8", company: "Wix.com", contactName: "Avishai Abrahami", phone: "+972-3-545-4900", email: "avishai@wix.com", brokerTag: "Nehama", comments: "HQ relocation planned", type: "tenant" },
+  { id: "9", company: "IronSource (Unity)", contactName: "Tomer Bar-Zeev", phone: "+972-54-222-1100", email: "tomer@unity.com", brokerTag: "Jeremy", comments: "Downsizing after merger", type: "tenant" },
   { id: "10", company: "Fiverr", contactName: "Micha Kaufman", phone: "+972-52-888-4400", email: "micha@fiverr.com", brokerTag: "Yoram", comments: "Expanding to 2nd building", type: "tenant" },
-  { id: "11", company: "Playtika", contactName: "Robert Antokol", phone: "+972-3-763-2200", email: "robert@playtika.com", brokerTag: "Nir", comments: "", type: "tenant" },
-  { id: "12", company: "Shlomo Group", contactName: "Shlomo Shmeltzer", phone: "+972-3-564-1100", email: "shlomo@shlomogroup.co.il", brokerTag: "Yoram", comments: "Multiple properties", type: "landlord" },
+  { id: "11", company: "Playtika", contactName: "Robert Antokol", phone: "+972-3-763-2200", email: "robert@playtika.com", brokerTag: "Kobi", comments: "", type: "tenant" },
+  { id: "12", company: "Shlomo Group", contactName: "Shlomo Shmeltzer", phone: "+972-3-564-1100", email: "shlomo@shlomogroup.co.il", brokerTag: "Amy", comments: "Multiple properties", type: "landlord" },
 ]
 
 export default function ContactsPage() {
   const t = useTranslations("contacts")
   const { buildings } = useBuildings()
+  const [contacts, setContacts] = useState<Contact[]>(INITIAL_CONTACTS)
   const [tab, setTab] = useState<"landlord" | "tenant">("landlord")
   const [search, setSearch] = useState("")
 
-  const filtered = DEMO_CONTACTS.filter(
+  const updateBroker = (id: string, broker: Broker) => {
+    setContacts(prev => prev.map(c => c.id === id ? { ...c, brokerTag: broker } : c))
+  }
+
+  const filtered = contacts.filter(
     (c) =>
       c.type === tab &&
       (!search ||
@@ -153,9 +161,15 @@ export default function ContactsPage() {
                       <a href={`mailto:${contact.email}`} className="hover:text-primary transition-colors">{contact.email}</a>
                     </td>
                     <td className="px-4 py-4">
-                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary">
-                        {contact.brokerTag}
-                      </span>
+                      <select
+                        value={contact.brokerTag}
+                        onChange={(e) => updateBroker(contact.id, e.target.value as Broker)}
+                        className="appearance-none bg-primary/10 text-primary border border-primary/20 rounded-full px-3 py-1 text-xs font-semibold cursor-pointer hover:bg-primary/15 focus:outline-none focus:ring-1 focus:ring-primary/30 transition-colors"
+                      >
+                        {BROKERS.map((b) => (
+                          <option key={b} value={b}>{b}</option>
+                        ))}
+                      </select>
                     </td>
                     <td className="px-4 py-4 text-sm text-muted-foreground max-w-[200px] truncate">
                       {contact.comments || "—"}

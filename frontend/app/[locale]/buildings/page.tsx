@@ -88,7 +88,7 @@ export default function BuildingsPage() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
-      <Sidebar buildings={buildings} />
+      <Sidebar buildings={buildings} filteredBuildings={filtered} filterLabel={cityLabel} />
       <main className="flex-1 overflow-y-auto">
         <div className="p-8 space-y-7">
           {/* Header */}

@@ -10,8 +10,9 @@ import {
   X, MapPin, User, Phone, Mail, Car, Clock, Leaf, Train,
   UtensilsCrossed, Coffee, Dumbbell, ShoppingBag, Sofa, Presentation,
   Baby, Droplets, Bike, Sun, Zap, FileText, Building2, Calendar,
-  ChevronDown
+  ChevronDown, Pencil, Check
 } from "lucide-react"
+import type { DeliveryCondition, LeedRating } from "@/types"
 import { formatDistanceToNow } from "date-fns"
 import { formatPrice } from "@/lib/utils"
 
@@ -51,17 +52,89 @@ interface Props {
   onClose: () => void
 }
 
-function DataRow({ label, value, href }: { label: string; value: string | null | undefined; href?: string }) {
-  const display = value || "Unknown"
+const LEED_LABELS: Record<string, string> = {
+  certified: "Certified",
+  silver: "Silver",
+  gold: "Gold",
+  platinum: "Platinum",
+  none: "None",
+  unknown: "Unknown",
+}
+
+function EditableRow({
+  label,
+  value,
+  onSave,
+  type = "text",
+  options,
+  href,
+}: {
+  label: string
+  value: string | null | undefined
+  onSave: (val: string) => void
+  type?: "text" | "select"
+  options?: { value: string; label: string }[]
+  href?: string
+}) {
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(value || "")
+
+  const display = value || "—"
   const style = value ? "text-foreground" : "text-foreground/25 italic"
+
+  if (editing) {
+    if (type === "select" && options) {
+      return (
+        <div className="flex items-center justify-between py-1.5">
+          <span className="text-xs text-muted-foreground">{label}</span>
+          <select
+            value={draft}
+            onChange={(e) => { onSave(e.target.value); setEditing(false) }}
+            onBlur={() => setEditing(false)}
+            autoFocus
+            className="text-xs font-medium bg-secondary/80 border border-border rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-primary/30 max-w-[140px]"
+          >
+            <option value="">—</option>
+            {options.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+        </div>
+      )
+    }
+    return (
+      <div className="flex items-center justify-between py-1.5 gap-2">
+        <span className="text-xs text-muted-foreground shrink-0">{label}</span>
+        <div className="flex items-center gap-1">
+          <input
+            type="text"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") { onSave(draft); setEditing(false) } if (e.key === "Escape") setEditing(false) }}
+            autoFocus
+            className="text-xs font-medium bg-secondary/80 border border-border rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-primary/30 w-[120px] text-end"
+          />
+          <button onClick={() => { onSave(draft); setEditing(false) }} className="p-0.5 hover:bg-white/[0.06] rounded transition-colors">
+            <Check className="w-3 h-3 text-lease-green" />
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="flex items-center justify-between py-1.5">
+    <div className="flex items-center justify-between py-1.5 group">
       <span className="text-xs text-muted-foreground">{label}</span>
-      {href && value ? (
-        <a href={href} className={`text-xs font-medium ${style} hover:text-primary transition-colors`}>{display}</a>
-      ) : (
-        <span className={`text-xs font-medium ${style}`}>{display}</span>
-      )}
+      <div className="flex items-center gap-1.5">
+        {href && value ? (
+          <a href={href} className={`text-xs font-medium ${style} hover:text-primary transition-colors`}>{display}</a>
+        ) : (
+          <span className={`text-xs font-medium ${style}`}>{display}</span>
+        )}
+        <button onClick={() => { setDraft(value || ""); setEditing(true) }} className="p-0.5 opacity-0 group-hover:opacity-100 hover:bg-white/[0.06] rounded transition-all">
+          <Pencil className="w-2.5 h-2.5 text-muted-foreground" />
+        </button>
+      </div>
     </div>
   )
 }
@@ -71,6 +144,7 @@ export default function BuildingModal({ building: initialBuilding, onClose }: Pr
   const [localBuilding, setLocalBuilding] = useState<Building | null>(null)
   const [kpiOpen, setKpiOpen] = useState(true)
   const [detailsOpen, setDetailsOpen] = useState(false)
+  const [parkingOpen, setParkingOpen] = useState(false)
 
   useEffect(() => {
     if (initialBuilding) {
@@ -101,6 +175,10 @@ export default function BuildingModal({ building: initialBuilding, onClose }: Pr
       }
     }
   }, [localBuilding, handleKeyDown])
+
+  const handleBuildingUpdate = useCallback((updates: Partial<Building>) => {
+    setLocalBuilding((prev) => prev ? { ...prev, ...updates } : prev)
+  }, [])
 
   const handleBlockUpdate = useCallback((blockId: string, updates: Partial<TenantBlock>) => {
     setLocalBuilding((prev) => {
@@ -235,24 +313,56 @@ export default function BuildingModal({ building: initialBuilding, onClose }: Pr
                   >
                     <div className="glass rounded-xl p-4 mt-1">
                       <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-0">
-                        <DataRow label="Owner" value={building.owner !== "—" ? building.owner : null} />
-                        <DataRow label="Contact" value={building.contactName || (building.contact !== "—" ? building.contact : null)} />
-                        <DataRow label="Phone" value={building.contactPhone || (building.phone !== "—" ? building.phone : null)} href={building.contactPhone ? `tel:${building.contactPhone}` : undefined} />
-                        <DataRow label="Email" value={building.contactEmail} href={building.contactEmail ? `mailto:${building.contactEmail}` : undefined} />
-                        <DataRow label="Year Built" value={building.yearBuilt?.toString()} />
-                        <DataRow label="LEED" value={leedLabel} />
-                        <DataRow label="Delivery" value={deliveryLabel} />
-                        <DataRow label="Mgmt Fee" value={building.managementFee ? `₪${building.managementFee}/sqm` : null} />
-                        <DataRow label="Municipal Tax" value={building.municipalTaxSqm ? `₪${building.municipalTaxSqm}/sqm` : null} />
-                        <DataRow label="Parking" value={parkingText} />
-                        <DataRow label="Transit" value={transitText} />
-                        <DataRow label="Amenities" value={
-                          building.amenities?.length
-                            ? building.amenities.map((a) => AMENITY_CONFIG[a]?.label || a).join(" · ")
-                            : null
-                        } />
+                        <EditableRow label="Owner" value={building.owner !== "—" ? building.owner : null} onSave={(v) => handleBuildingUpdate({ owner: v })} />
+                        <EditableRow label="Contact" value={building.contactName || (building.contact !== "—" ? building.contact : null)} onSave={(v) => handleBuildingUpdate({ contactName: v })} />
+                        <EditableRow label="Phone" value={building.contactPhone || (building.phone !== "—" ? building.phone : null)} href={building.contactPhone ? `tel:${building.contactPhone}` : undefined} onSave={(v) => handleBuildingUpdate({ contactPhone: v })} />
+                        <EditableRow label="Email" value={building.contactEmail} href={building.contactEmail ? `mailto:${building.contactEmail}` : undefined} onSave={(v) => handleBuildingUpdate({ contactEmail: v })} />
+                        <EditableRow label="Year Built" value={building.yearBuilt?.toString()} onSave={(v) => handleBuildingUpdate({ yearBuilt: parseInt(v) || null })} />
+                        <EditableRow
+                          label="LEED Status"
+                          value={leedLabel}
+                          type="select"
+                          options={Object.entries(LEED_LABELS).filter(([k]) => k !== "unknown").map(([value, label]) => ({ value, label }))}
+                          onSave={(v) => handleBuildingUpdate({ leedRating: (v || "none") as LeedRating })}
+                        />
+                        <EditableRow
+                          label="Delivery"
+                          value={deliveryLabel}
+                          type="select"
+                          options={Object.entries(DELIVERY_LABELS).map(([value, label]) => ({ value, label }))}
+                          onSave={(v) => handleBuildingUpdate({ deliveryCondition: (v || null) as DeliveryCondition | null })}
+                        />
+                        <EditableRow label="Mgmt Fee" value={building.managementFee ? `${building.managementFee}` : null} onSave={(v) => handleBuildingUpdate({ managementFee: parseFloat(v) || 0 })} />
+                        <EditableRow label="Municipal Tax" value={building.municipalTaxSqm ? `${building.municipalTaxSqm}` : null} onSave={(v) => handleBuildingUpdate({ municipalTaxSqm: parseFloat(v) || null })} />
+                        <EditableRow label="Transit" value={transitText} onSave={() => {}} />
                       </div>
 
+                      {/* Parking sub-section */}
+                      <div className="mt-3 pt-3 border-t border-border/50">
+                        <button
+                          onClick={() => setParkingOpen(!parkingOpen)}
+                          className="flex items-center gap-2 w-full text-xs text-muted-foreground hover:text-foreground transition-colors py-1"
+                        >
+                          <Car className="w-3 h-3" />
+                          <span className="font-medium">Parking</span>
+                          <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${parkingOpen ? "" : "-rotate-90"}`} />
+                        </button>
+                        {parkingOpen && (
+                          <div className="grid grid-cols-3 gap-x-8 gap-y-0 mt-1 ps-5">
+                            <EditableRow
+                              label="Per Sqm"
+                              value={building.parkingOptions?.length
+                                ? building.parkingOptions.map((p) => `${PARKING_LABELS[p.parking_type] || p.parking_type}${p.price_monthly ? ` ₪${p.price_monthly}` : ""}`).join(", ")
+                                : null}
+                              onSave={() => {}}
+                            />
+                            <EditableRow label="Parking Ratio" value={building.parkingRatio ? `1:${building.parkingRatio}` : null} onSave={(v) => handleBuildingUpdate({ parkingRatio: parseFloat(v.replace("1:", "")) || null })} />
+                            <EditableRow label="Number of Spots" value={building.parkingSpaces?.toString() ?? null} onSave={(v) => handleBuildingUpdate({ parkingSpaces: parseInt(v) || null })} />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Amenities */}
                       {building.amenities && building.amenities.length > 0 && (
                         <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/50 flex-wrap">
                           {building.amenities.map((a) => {

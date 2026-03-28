@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react"
 import { useTranslations, useLocale } from "next-intl"
 import { useBuildings } from "@/lib/hooks/useBuildings"
+import { useCities } from "@/lib/hooks/useCities"
 import { Building } from "@/types"
 import { getLeaseUrgency } from "@/lib/leaseColors"
 import { formatSqm, formatPrice } from "@/lib/utils"
@@ -10,7 +11,7 @@ import Sidebar from "@/components/Sidebar"
 import DashboardStats from "@/components/DashboardStats"
 import BuildingModal from "@/components/BuildingModal"
 import { differenceInMonths } from "date-fns"
-import { Phone, Target, AlertTriangle, TrendingUp, ArrowRight, ArrowLeft, Sparkles, Building2, Clock } from "lucide-react"
+import { Phone, Target, AlertTriangle, TrendingUp, ArrowRight, ArrowLeft, Sparkles, Building2, Clock, ChevronDown } from "lucide-react"
 import LanguageSwitcher from "@/components/LanguageSwitcher"
 import ThemeToggle from "@/components/ThemeToggle"
 
@@ -111,8 +112,22 @@ export default function DashboardPage() {
   const isRtl = locale === "he"
   const Arrow = isRtl ? ArrowLeft : ArrowRight
   const { buildings } = useBuildings()
+  const { cities } = useCities()
+  const [city, setCity] = useState("all")
+  const [cityOpen, setCityOpen] = useState(false)
   const [selectedBuilding, setSelectedBuilding] = useState<Building | null>(null)
-  const { actions, vacancyAlerts, expiringLeases } = useMarketInsights(buildings)
+
+  const selectedCity = cities.find((c) => c.city === city)
+  const cityLabel = city === "all"
+    ? (locale === "he" ? "כל הערים" : "All Cities")
+    : (locale === "he" ? (selectedCity?.city ?? city) : (selectedCity?.city_en ?? city))
+
+  const filtered = useMemo(() =>
+    city === "all" ? buildings : buildings.filter((b) => b.city === city),
+    [buildings, city]
+  )
+
+  const { actions, vacancyAlerts, expiringLeases } = useMarketInsights(filtered)
 
   const priorityColors = {
     urgent: "bg-rose-500/15 border-rose-500/30 text-rose-400",
@@ -128,16 +143,47 @@ export default function DashboardPage() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
-      <Sidebar buildings={buildings} />
+      <Sidebar buildings={buildings} filteredBuildings={filtered} filterLabel={cityLabel} />
       <main className="flex-1 overflow-y-auto">
         <div className="p-8 space-y-7">
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-display tracking-tight">{t("title")}</h1>
-              <p className="text-sm text-muted-foreground mt-1.5">
-                {t("subtitle", { count: buildings.length })}
-              </p>
+              <div className="flex items-center gap-2 mt-1.5">
+                <div className="relative">
+                  <button
+                    onClick={() => setCityOpen(!cityOpen)}
+                    className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {cityLabel}
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  </button>
+                  {cityOpen && (
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => setCityOpen(false)} />
+                      <div className="absolute top-full start-0 mt-1 z-50 w-48 glass-strong rounded-xl border border-border shadow-2xl overflow-hidden">
+                        <button
+                          onClick={() => { setCity("all"); setCityOpen(false) }}
+                          className={`w-full text-start px-4 py-2 text-sm hover:bg-white/[0.04] transition-colors ${city === "all" ? "text-foreground font-medium" : "text-muted-foreground"}`}
+                        >
+                          {locale === "he" ? "כל הערים" : "All Cities"}
+                        </button>
+                        {cities.map((c) => (
+                          <button
+                            key={c.city}
+                            onClick={() => { setCity(c.city); setCityOpen(false) }}
+                            className={`w-full text-start px-4 py-2 text-sm hover:bg-white/[0.04] transition-colors ${city === c.city ? "text-foreground font-medium" : "text-muted-foreground"}`}
+                          >
+                            {locale === "he" ? c.city : (c.city_en || c.city)}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+                <span className="text-sm text-muted-foreground">· {filtered.length} {locale === "he" ? "מגדלים" : "buildings"}</span>
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <ThemeToggle />
@@ -146,7 +192,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Stats Strip */}
-          <DashboardStats buildings={buildings} />
+          <DashboardStats buildings={filtered} />
 
           {/* Main Grid: Action Items + Vacancy Alerts */}
           <div className="grid lg:grid-cols-[1fr_380px] gap-5">

@@ -3,7 +3,7 @@
     "stax": "STAX",
     "tagline": "Real Estate Intelligence",
     "version": "v1.0",
-    "demo": "Demo Dataset · Herzliya Pituach 2026"
+    "demo": "Demo Dataset · Herzliya 2026"
   },
   "nav": {
     "home": "Home",
@@ -24,8 +24,8 @@
     "badge": "New platform for commercial real estate",
     "title1": "Commercial Real Estate",
     "title2": "Intelligence.",
-    "subtitle": "A unified platform for buildings, tenants, leases, and opportunity tracking.",
-    "ctaDashboard": "Market Dashboard",
+    "subtitle": "A unified platform for understanding the DNA of buildings — tenants, leases, and opportunities.",
+    "ctaDashboard": "Market Overview",
     "ctaEditor": "Try the Editor",
     "statUsers": "1,200",
     "statUsersLabel": "Buildings",
@@ -33,13 +33,13 @@
     "statChurnLabel": "Occupancy Rate",
     "statDeals": "24M",
     "statDealsLabel": "Sqm Covered",
-    "twoTools": "Two tools. One platform.",
+    "twoTools": "One system. Complete market visibility.",
     "twoToolsSub": "Everything a commercial real estate broker needs.",
-    "dashboardTitle": "Property Dashboard",
-    "dashboardDesc": "Full view of the property portfolio",
-    "dashboardF1": "Interactive stacking plans with lease color coding",
+    "dashboardTitle": "Market Overview",
+    "dashboardDesc": "A real-time view of buildings, tenants, and vacancy across the market",
+    "dashboardF1": "Interactive stacking plans with tenant data",
     "dashboardF2": "KPIs — occupancy, vacancy, pricing",
-    "dashboardF3": "17 buildings with real tenant data",
+    "dashboardF3": "Verified market data across buildings",
     "editorTitle": "Stacking Plan Editor",
     "editorDesc": "Build stacking plans in seconds.",
     "editorF1": "Add floors and units with a click",
@@ -60,7 +60,7 @@
     "totalVacant": "Total Vacant"
   },
   "insights": {
-    "actionItems": "Action Items",
+    "actionItems": "Deal Radar",
     "actionItemsSub": "AI-generated priorities based on current market data",
     "vacancyAlerts": "Vacancy Alerts",
     "vacancyAlertsSub": "Buildings with significant vacancy to target",
@@ -79,7 +79,7 @@
     "sqmAvailable": "{sqm} sqm available"
   },
   "buildingsPage": {
-    "title": "Property Portfolio",
+    "title": "Market Overview",
     "subtitle": "Herzliya Pituach · {count} buildings",
     "tableView": "Table",
     "cardView": "Cards",
