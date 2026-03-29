@@ -13,6 +13,7 @@ import {
   ChevronDown, Pencil, Check
 } from "lucide-react"
 import type { DeliveryCondition, LeedRating } from "@/types"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { formatDistanceToNow } from "date-fns"
 import { formatPrice } from "@/lib/utils"
 
@@ -87,18 +88,22 @@ function EditableRow({
       return (
         <div className="flex items-center justify-between py-1.5">
           <span className="text-xs text-muted-foreground">{label}</span>
-          <select
-            value={draft}
-            onChange={(e) => { onSave(e.target.value); setEditing(false) }}
-            onBlur={() => setEditing(false)}
-            autoFocus
-            className="text-xs font-medium bg-secondary/80 border border-border rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-primary/30 max-w-[140px]"
+          <Select
+            defaultOpen
+            value={draft || "none"}
+            onValueChange={(val) => { onSave(val === "none" ? "" : (val || "")); setEditing(false) }}
+            onOpenChange={(open) => { if (!open) setEditing(false) }}
           >
-            <option value="">—</option>
-            {options.map((o) => (
-              <option key={o.value} value={o.value}>{o.label}</option>
-            ))}
-          </select>
+            <SelectTrigger className="text-xs font-medium bg-secondary/80 border border-border rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-primary/30 max-w-[140px] h-auto shadow-none">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">—</SelectItem>
+              {options.map((o) => (
+                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       )
     }

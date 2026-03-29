@@ -10,7 +10,8 @@ import FilterBar from "@/components/FilterBar"
 import BuildingCard from "@/components/BuildingCard"
 import BuildingModal from "@/components/BuildingModal"
 import { formatSqm, formatPrice } from "@/lib/utils"
-import { LayoutGrid, List, ChevronDown, Search, ArrowUpDown } from "lucide-react"
+import { LayoutGrid, List, Search, ArrowUpDown } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 import LanguageSwitcher from "@/components/LanguageSwitcher"
 import ThemeToggle from "@/components/ThemeToggle"
@@ -36,7 +37,6 @@ export default function BuildingsPage() {
   const [selectedBuilding, setSelectedBuilding] = useState<Building | null>(null)
   const [view, setView] = useState<"table" | "cards">("table")
   const [city, setCity] = useState("all")
-  const [cityOpen, setCityOpen] = useState(false)
   const [search, setSearch] = useState("")
   const [sortKey, setSortKey] = useState<SortKey>("name")
   const [sortDir, setSortDir] = useState<SortDir>("asc")
@@ -96,49 +96,19 @@ export default function BuildingsPage() {
             <div>
               <h1 className="text-3xl font-display tracking-tight">{t("title")}</h1>
               <div className="flex items-center gap-2 mt-1.5">
-                <div className="relative">
-                  <button
-                    onClick={() => setCityOpen(!cityOpen)}
-                    className="flex items-center gap-1.5 text-sm font-medium text-foreground hover:text-primary transition-colors"
-                  >
-                    {cityLabel}
-                    <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", cityOpen && "rotate-180")} />
-                  </button>
-                  {cityOpen && (
-                    <>
-                      <div className="fixed inset-0 z-40" onClick={() => setCityOpen(false)} />
-                      <div className="absolute top-full start-0 mt-1 z-50 glass-strong rounded-xl py-1.5 min-w-[200px] shadow-2xl shadow-black/40">
-                        <button
-                          key="all"
-                          onClick={() => { setCity("all"); setCityOpen(false) }}
-                          className={cn(
-                            "w-full text-start px-4 py-2 text-sm transition-colors",
-                            city === "all"
-                              ? "text-primary font-medium"
-                              : "text-muted-foreground hover:text-foreground hover:bg-foreground/[0.04]"
-                          )}
-                        >
-                          {locale === "he" ? "כל הערים" : "All Cities"}
-                        </button>
-                        {cities.map((c) => (
-                          <button
-                            key={c.city}
-                            onClick={() => { setCity(c.city); setCityOpen(false) }}
-                            className={cn(
-                              "w-full text-start px-4 py-2 text-sm transition-colors",
-                              city === c.city
-                                ? "text-primary font-medium"
-                                : "text-muted-foreground hover:text-foreground hover:bg-foreground/[0.04]"
-                            )}
-                          >
-                            {locale === "he" ? c.city : (c.city_en || c.city)}
-                            <span className="text-xs text-muted-foreground/50 ms-2">{c.count}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </div>
+                <Select value={city} onValueChange={(val) => val && setCity(val)}>
+                  <SelectTrigger className="border-none bg-transparent dark:bg-transparent shadow-none ring-0 focus-visible:ring-0 focus-visible:border-transparent h-auto p-0 text-sm font-medium text-foreground hover:text-primary gap-1.5">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{locale === "he" ? "כל הערים" : "All Cities"}</SelectItem>
+                    {cities.map((c) => (
+                      <SelectItem key={c.city} value={c.city}>
+                        {locale === "he" ? c.city : (c.city_en || c.city)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <span className="text-sm text-muted-foreground">· {filtered.length} {t("colName").toLowerCase()}</span>
               </div>
             </div>

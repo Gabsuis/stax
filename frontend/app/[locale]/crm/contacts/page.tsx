@@ -7,6 +7,7 @@ import Sidebar from "@/components/Sidebar"
 import LanguageSwitcher from "@/components/LanguageSwitcher"
 import ThemeToggle from "@/components/ThemeToggle"
 import { Search, Plus, Upload, UserPlus } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 const BROKERS = ["Yoram", "Kobi", "Larry", "Amy", "Phil", "Nehama", "Jeremy"] as const
 type Broker = typeof BROKERS[number]
@@ -161,15 +162,16 @@ export default function ContactsPage() {
                       <a href={`mailto:${contact.email}`} className="hover:text-primary transition-colors">{contact.email}</a>
                     </td>
                     <td className="px-4 py-4">
-                      <select
-                        value={contact.brokerTag}
-                        onChange={(e) => updateBroker(contact.id, e.target.value as Broker)}
-                        className="appearance-none bg-primary/10 text-primary border border-primary/20 rounded-full px-3 py-1 text-xs font-semibold cursor-pointer hover:bg-primary/15 focus:outline-none focus:ring-1 focus:ring-primary/30 transition-colors"
-                      >
-                        {BROKERS.map((b) => (
-                          <option key={b} value={b}>{b}</option>
-                        ))}
-                      </select>
+                      <Select value={contact.brokerTag} onValueChange={(val) => updateBroker(contact.id, val as Broker)}>
+                        <SelectTrigger className="border-primary/20 bg-primary/10 dark:bg-primary/10 text-primary h-auto px-3 py-1 rounded-full text-xs font-semibold hover:bg-primary/15 shadow-none ring-0 focus-visible:ring-1 focus-visible:ring-primary/30">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {BROKERS.map((b) => (
+                            <SelectItem key={b} value={b}>{b}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </td>
                     <td className="px-4 py-4 text-sm text-muted-foreground max-w-[200px] truncate">
                       {contact.comments || "—"}

@@ -6,7 +6,8 @@ import { useBuildings } from "@/lib/hooks/useBuildings"
 import Sidebar from "@/components/Sidebar"
 import LanguageSwitcher from "@/components/LanguageSwitcher"
 import ThemeToggle from "@/components/ThemeToggle"
-import { Search, Plus, ChevronDown, FileText, User } from "lucide-react"
+import { Search, Plus, FileText, User } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 type InvoiceStatus = "in_progress" | "approved" | "sent_to_client" | "paid" | "cancelled"
 
@@ -55,7 +56,6 @@ export default function InvoicingPage() {
   const t = useTranslations("invoicing")
   const { buildings } = useBuildings()
   const [search, setSearch] = useState("")
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null)
   const [invoices, setInvoices] = useState(DEMO_INVOICES)
 
   const filtered = invoices.filter(
@@ -68,7 +68,6 @@ export default function InvoicingPage() {
 
   const updateStatus = (id: string, status: InvoiceStatus) => {
     setInvoices((prev) => prev.map((inv) => (inv.id === id ? { ...inv, status } : inv)))
-    setOpenDropdown(null)
   }
 
   return (
@@ -152,34 +151,19 @@ export default function InvoicingPage() {
                         </span>
                       ) : "—"}
                     </td>
-                    <td className="px-4 py-4 relative">
-                      <button
-                        onClick={() => setOpenDropdown(openDropdown === inv.id ? null : inv.id)}
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold transition-all ${STATUS_COLORS[inv.status]}`}
-                      >
-                        {t(STATUS_KEYS[inv.status])}
-                        <ChevronDown className="w-3 h-3" />
-                      </button>
-                      {openDropdown === inv.id && (
-                        <>
-                          <div className="fixed inset-0 z-40" onClick={() => setOpenDropdown(null)} />
-                          <div className="absolute top-full start-4 mt-1 z-50 glass-strong rounded-xl py-1.5 min-w-[160px] shadow-2xl shadow-black/40">
-                            {STATUSES.map((s) => (
-                              <button
-                                key={s}
-                                onClick={() => updateStatus(inv.id, s)}
-                                className={`w-full text-start px-4 py-2 text-sm transition-colors ${
-                                  inv.status === s
-                                    ? "text-primary font-medium"
-                                    : "text-muted-foreground hover:text-foreground hover:bg-foreground/[0.04]"
-                                }`}
-                              >
-                                {t(STATUS_KEYS[s])}
-                              </button>
-                            ))}
-                          </div>
-                        </>
-                      )}
+                    <td className="px-4 py-4">
+                      <Select value={inv.status} onValueChange={(val) => updateStatus(inv.id, val as InvoiceStatus)}>
+                        <SelectTrigger className={`border-none bg-transparent dark:bg-transparent shadow-none ring-0 focus-visible:ring-0 focus-visible:border-transparent h-auto px-2.5 py-1 rounded-full text-xs font-semibold ${STATUS_COLORS[inv.status]}`}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {STATUSES.map((s) => (
+                            <SelectItem key={s} value={s}>
+                              {t(STATUS_KEYS[s])}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </td>
                     <td className="px-4 py-4 text-sm text-muted-foreground">{inv.issueDate}</td>
                     <td className="px-4 py-4">

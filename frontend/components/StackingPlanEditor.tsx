@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from "react"
 import { Plus, Trash2, X, ChevronDown, ChevronUp, Scissors } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 import { useCities, type CityInfo } from "@/lib/hooks/useCities"
 import type { DeliveryCondition } from "@/types"
@@ -613,14 +614,15 @@ export default function StackingPlanEditor({
             {/* Status */}
             <div>
               <label className={labelClass}>{isHe ? "סטטוס" : "Status"}</label>
-              <select
-                value={selectedTenant.isVacant ? 'vacant' : 'occupied'}
-                onChange={(e) => updateTenantDetails({ isVacant: e.target.value === 'vacant' })}
-                className={inputClass}
-              >
-                <option value="occupied">{isHe ? "מאוכלס" : "Occupied"}</option>
-                <option value="vacant">{isHe ? "פנוי" : "Vacant"}</option>
-              </select>
+              <Select value={selectedTenant.isVacant ? 'vacant' : 'occupied'} onValueChange={(val) => updateTenantDetails({ isVacant: val === 'vacant' })}>
+                <SelectTrigger className={inputClass}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="occupied">{isHe ? "מאוכלס" : "Occupied"}</SelectItem>
+                  <SelectItem value="vacant">{isHe ? "פנוי" : "Vacant"}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Lease dates — only if occupied */}
@@ -674,16 +676,17 @@ export default function StackingPlanEditor({
             {/* Delivery condition */}
             <div>
               <label className={labelClass}>{isHe ? "מצב המשרד" : "Delivery"}</label>
-              <select
-                value={selectedTenant.deliveryCondition || ''}
-                onChange={(e) => updateTenantDetails({ deliveryCondition: (e.target.value || undefined) as DeliveryCondition | undefined })}
-                className={inputClass}
-              >
-                <option value="">—</option>
-                {Object.entries(deliveryLabels).map(([val, label]) => (
-                  <option key={val} value={val}>{label}</option>
-                ))}
-              </select>
+              <Select value={selectedTenant.deliveryCondition || 'none'} onValueChange={(val) => updateTenantDetails({ deliveryCondition: (val === 'none' ? undefined : val) as DeliveryCondition | undefined })}>
+                <SelectTrigger className={inputClass}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">—</SelectItem>
+                  {Object.entries(deliveryLabels).map(([val, label]) => (
+                    <SelectItem key={val} value={val}>{label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Sublease */}

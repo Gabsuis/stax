@@ -11,7 +11,8 @@ import Sidebar from "@/components/Sidebar"
 import DashboardStats from "@/components/DashboardStats"
 import BuildingModal from "@/components/BuildingModal"
 import { differenceInMonths } from "date-fns"
-import { Phone, Target, AlertTriangle, TrendingUp, ArrowRight, ArrowLeft, Sparkles, Building2, Clock, ChevronDown } from "lucide-react"
+import { Phone, Target, AlertTriangle, TrendingUp, ArrowRight, ArrowLeft, Sparkles, Building2, Clock } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import LanguageSwitcher from "@/components/LanguageSwitcher"
 import ThemeToggle from "@/components/ThemeToggle"
 
@@ -114,7 +115,6 @@ export default function DashboardPage() {
   const { buildings } = useBuildings()
   const { cities } = useCities()
   const [city, setCity] = useState("all")
-  const [cityOpen, setCityOpen] = useState(false)
   const [selectedBuilding, setSelectedBuilding] = useState<Building | null>(null)
 
   const selectedCity = cities.find((c) => c.city === city)
@@ -151,37 +151,19 @@ export default function DashboardPage() {
             <div>
               <h1 className="text-3xl font-display tracking-tight">{t("title")}</h1>
               <div className="flex items-center gap-2 mt-1.5">
-                <div className="relative">
-                  <button
-                    onClick={() => setCityOpen(!cityOpen)}
-                    className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {cityLabel}
-                    <ChevronDown className="w-3.5 h-3.5" />
-                  </button>
-                  {cityOpen && (
-                    <>
-                      <div className="fixed inset-0 z-40" onClick={() => setCityOpen(false)} />
-                      <div className="absolute top-full start-0 mt-1 z-50 w-48 glass-strong rounded-xl border border-border shadow-2xl overflow-hidden">
-                        <button
-                          onClick={() => { setCity("all"); setCityOpen(false) }}
-                          className={`w-full text-start px-4 py-2 text-sm hover:bg-white/[0.04] transition-colors ${city === "all" ? "text-foreground font-medium" : "text-muted-foreground"}`}
-                        >
-                          {locale === "he" ? "כל הערים" : "All Cities"}
-                        </button>
-                        {cities.map((c) => (
-                          <button
-                            key={c.city}
-                            onClick={() => { setCity(c.city); setCityOpen(false) }}
-                            className={`w-full text-start px-4 py-2 text-sm hover:bg-white/[0.04] transition-colors ${city === c.city ? "text-foreground font-medium" : "text-muted-foreground"}`}
-                          >
-                            {locale === "he" ? c.city : (c.city_en || c.city)}
-                          </button>
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </div>
+                <Select value={city} onValueChange={(val) => val && setCity(val)}>
+                  <SelectTrigger className="border-none bg-transparent dark:bg-transparent shadow-none ring-0 focus-visible:ring-0 focus-visible:border-transparent h-auto p-0 text-sm text-muted-foreground hover:text-foreground gap-1.5">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{locale === "he" ? "כל הערים" : "All Cities"}</SelectItem>
+                    {cities.map((c) => (
+                      <SelectItem key={c.city} value={c.city}>
+                        {locale === "he" ? c.city : (c.city_en || c.city)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <span className="text-sm text-muted-foreground">· {filtered.length} {locale === "he" ? "מגדלים" : "buildings"}</span>
               </div>
             </div>
