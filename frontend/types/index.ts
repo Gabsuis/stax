@@ -161,6 +161,10 @@ export interface Building {
   sourceDocumentId?: string | null
   sourceDocumentName?: string | null
 
+  // Location
+  latitude?: number | null
+  longitude?: number | null
+
   // Timestamps
   createdAt?: string
   updatedAt?: string

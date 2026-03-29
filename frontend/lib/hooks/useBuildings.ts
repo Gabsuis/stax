@@ -171,6 +171,8 @@ export function useBuildings(): UseBuildings {
           parkingSpaces: row.parking_spaces as number | null,
           parkingRatio: row.parking_ratio as number | null,
           heroImageUrl: row.hero_image_url as string | null,
+          latitude: (row.latitude as number) ?? null,
+          longitude: (row.longitude as number) ?? null,
           amenities: amenityRows.map((a) => a.amenity as Building['amenities'] extends (infer U)[] ? U : never),
           parkingOptions: parkingRows,
           sourceDocumentId: row.source_document_id as string | null,

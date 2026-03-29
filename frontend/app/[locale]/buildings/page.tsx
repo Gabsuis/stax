@@ -10,12 +10,15 @@ import FilterBar from "@/components/FilterBar"
 import BuildingCard from "@/components/BuildingCard"
 import BuildingModal from "@/components/BuildingModal"
 import { formatSqm, formatPrice } from "@/lib/utils"
-import { LayoutGrid, List, Search, ArrowUpDown } from "lucide-react"
+import { LayoutGrid, List, Map, Search, ArrowUpDown } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 import LanguageSwitcher from "@/components/LanguageSwitcher"
 import ThemeToggle from "@/components/ThemeToggle"
 import { BuildingsTableSkeleton, BuildingsCardsSkeleton } from "@/components/LoadingSkeleton"
+import dynamic from "next/dynamic"
+
+const BuildingsMap = dynamic(() => import("@/components/BuildingsMap"), { ssr: false })
 
 type SortKey = "name" | "class" | "area" | "totalSqm" | "vacantSqm" | "occupancy" | "askingPrice" | "floorCount"
 type SortDir = "asc" | "desc"
@@ -35,7 +38,7 @@ export default function BuildingsPage() {
   const [areaFilter, setAreaFilter] = useState("all")
   const [classFilter, setClassFilter] = useState("all")
   const [selectedBuilding, setSelectedBuilding] = useState<Building | null>(null)
-  const [view, setView] = useState<"table" | "cards">("table")
+  const [view, setView] = useState<"table" | "cards" | "map">("table")
   const [city, setCity] = useState("all")
   const [search, setSearch] = useState("")
   const [sortKey, setSortKey] = useState<SortKey>("name")
@@ -141,6 +144,18 @@ export default function BuildingsPage() {
                 <LayoutGrid className="w-3.5 h-3.5" />
                 {t("cardView")}
               </button>
+              <button
+                onClick={() => setView("map")}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium transition-all",
+                  view === "map"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <Map className="w-3.5 h-3.5" />
+                {t("mapView")}
+              </button>
             </div>
             </div>
           </div>
@@ -164,6 +179,11 @@ export default function BuildingsPage() {
             onClassChange={setClassFilter}
             />
           </div>
+
+          {/* Map View */}
+          {view === "map" && (
+            <BuildingsMap buildings={filtered} onSelect={setSelectedBuilding} />
+          )}
 
           {/* Loading */}
           {loading && view === "table" && <BuildingsTableSkeleton />}

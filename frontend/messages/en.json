@@ -83,6 +83,7 @@
     "subtitle": "Herzliya Pituach · {count} buildings",
     "tableView": "Table",
     "cardView": "Cards",
+    "mapView": "Map",
     "colName": "Building",
     "colClass": "Class",
     "colArea": "Area",

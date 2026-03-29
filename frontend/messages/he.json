@@ -83,6 +83,7 @@
     "subtitle": "הרצליה פיתוח · {count} מגדלים",
     "tableView": "טבלה",
     "cardView": "כרטיסים",
+    "mapView": "מפה",
     "colName": "מגדל",
     "colClass": "דרגה",
     "colArea": "אזור",

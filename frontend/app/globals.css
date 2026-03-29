@@ -244,3 +244,44 @@ body::before {
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
 }
+
+/* MapLibre popup overrides */
+.maplibregl-marker {
+  z-index: 1 !important;
+}
+.maplibregl-marker:hover {
+  z-index: 50 !important;
+}
+.stax-popup {
+  z-index: 200 !important;
+}
+.stax-popup .maplibregl-popup-content {
+  background: oklch(0.97 0.005 80 / 92%);
+  backdrop-filter: blur(24px) saturate(1.2);
+  border: 1px solid oklch(0 0 0 / 8%);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 8px 40px -12px oklch(0 0 0 / 18%), 0 2px 12px -4px oklch(0 0 0 / 8%);
+}
+.dark .stax-popup .maplibregl-popup-content {
+  background: oklch(0.155 0.007 260 / 92%);
+  border-color: oklch(1 0 0 / 8%);
+  color: oklch(0.95 0.01 80);
+}
+.stax-popup .maplibregl-popup-close-button {
+  font-size: 18px;
+  padding: 4px 8px;
+  color: inherit;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+}
+.stax-popup .maplibregl-popup-close-button:hover {
+  opacity: 1;
+  background: transparent;
+}
+.stax-popup .maplibregl-popup-tip {
+  border-top-color: oklch(0.97 0.005 80 / 92%);
+}
+.dark .stax-popup .maplibregl-popup-tip {
+  border-top-color: oklch(0.155 0.007 260 / 92%);
+}

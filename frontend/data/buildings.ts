@@ -248,7 +248,7 @@ export const buildings: Building[] = [
     askingPrice: 90, allowance: "TBD", finish: "As-Is New",
     parkingPrice: "650 ₪ צפה + 80 ₪ ארנונה", managementFee: 22,
     contact: "—", phone: "—", notes: "קומות 7-8 פנויות",
-    occupancy: 0.917, floors: amphaFloors },
+    occupancy: 0.917, latitude: 32.1636, longitude: 34.8120, floors: amphaFloors },
 
   { id: 2, name: "הרצליה ביזנס פארק", nameEn: "Herzliya Business Park",
     owner: "—", address: "מדינת היהודים 85, הרצליה", area: "north",
@@ -257,7 +257,7 @@ export const buildings: Building[] = [
     parkingPrice: "800 ₪ צפה / 1,000 ₪ שמורה", managementFee: 28.5,
     contact: "ירדן", phone: "052-2988654",
     notes: "20,000 מ״ר בגמר + 900 מ״ר קומה 6",
-    occupancy: 0.701, floors: herzliyaBizFloors },
+    occupancy: 0.701, latitude: 32.1667, longitude: 34.8099, floors: herzliyaBizFloors },
 
   { id: 3, name: "גב ים צפון", nameEn: "Gav-Yam North",
     owner: "גב-ים", address: "המדע 5, הרצליה", area: "north",
@@ -266,7 +266,7 @@ export const buildings: Building[] = [
     parkingPrice: "750 ₪ צפה / 1,200 ₪ שמורה", managementFee: 20,
     contact: "אבי מנהל שיווק", phone: "052-3452553",
     notes: "קומה 7: Ultra מתפנה במרץ · קומה 3: Dell מתפנה באפריל",
-    occupancy: 0.821, floors: gavYamNorthFloors },
+    occupancy: 0.821, latitude: 32.1668, longitude: 34.8130, floors: gavYamNorthFloors },
 
   { id: 4, name: "בית אקרשטיין הישן", nameEn: "Akerstein Old Building",
     owner: "—", address: "המדע 8, הרצליה", area: "north",
@@ -275,7 +275,7 @@ export const buildings: Building[] = [
     parkingPrice: "750 ₪ + מע\"מ", managementFee: 0,
     contact: "גיא כהן", phone: "050-7617617",
     notes: "המבנה מיועד להריסה בעוד שנה",
-    occupancy: 0.667, floors: akersteinOldFloors },
+    occupancy: 0.667, latitude: 32.1660, longitude: 34.8133, floors: akersteinOldFloors },
 
   { id: 5, name: "משכית 25", nameEn: "Mashkit 25",
     owner: "כלל", address: "משכית 25, הרצליה", area: "center",
@@ -284,7 +284,7 @@ export const buildings: Building[] = [
     parkingPrice: "800 ₪ + 110 ₪ דמ\"נ", managementFee: 0,
     contact: "אמיר כלל", phone: "—",
     notes: "20 חניות · עסקת switch up בוטלה",
-    occupancy: 0.033, floors: mashkit25Floors },
+    occupancy: 0.033, latitude: 32.1639, longitude: 34.8112, floors: mashkit25Floors },
 
   { id: 6, name: "קוגנייט", nameEn: "Cognyte",
     owner: "—", address: "משכית 33, הרצליה", area: "center",
@@ -292,7 +292,7 @@ export const buildings: Building[] = [
     askingPrice: 80, allowance: "1,000 ₪", finish: "As-Is",
     parkingPrice: "700 ₪ + 100 ₪ ארנונה", managementFee: 19,
     contact: "—", phone: "—", notes: "קומה 4 פנויה",
-    occupancy: 0.789, floors: cogniteFloors },
+    occupancy: 0.789, latitude: 32.1621, longitude: 34.8108, floors: cogniteFloors },
 
   { id: 7, name: "גלגלי הפלדה 11", nameEn: "Galgalei HaPalada 11",
     owner: "—", address: "גלגלי הפלדה 11, הרצליה", area: "center",
@@ -300,7 +300,7 @@ export const buildings: Building[] = [
     askingPrice: 80, allowance: "500 ₪", finish: "As-Is",
     parkingPrice: "—", managementFee: 20,
     contact: "—", phone: "—", notes: "קומה 4 פנויה חלקית",
-    occupancy: 0.917, floors: galgaleiFloors },
+    occupancy: 0.917, latitude: 32.1640, longitude: 34.8079, floors: galgaleiFloors },
 
   { id: 8, name: "תאומי שדרות הגלים", nameEn: "Taomei Sderot HaGalim",
     owner: "—", address: "אבא אבן 8, הרצליה", area: "center",
@@ -309,7 +309,7 @@ export const buildings: Building[] = [
     parkingPrice: "500 ₪", managementFee: 24,
     contact: "דניאל מנהל מגדל", phone: "054-4222039",
     notes: "יש גם שטחים בקניון ארנה",
-    occupancy: 0.976, floors: taomeiFloors },
+    occupancy: 0.976, latitude: 32.1612, longitude: 34.8089, floors: taomeiFloors },
 
   { id: 9, name: "מרכז גב ים שנקר", nameEn: "Gav-Yam Shanker Center",
     owner: "גב-ים", address: "שנקר, הרצליה", area: "south",
@@ -318,7 +318,7 @@ export const buildings: Building[] = [
     parkingPrice: "750 ₪ צפה / 1,200 ₪ שמורה", managementFee: 20,
     contact: "אבי מנהל שיווק", phone: "052-3452553",
     notes: "קומה 1: 918 מ\"ר בגמר",
-    occupancy: 0.973, floors: gavYamShankerFloors },
+    occupancy: 0.973, latitude: 32.1597, longitude: 34.8094, floors: gavYamShankerFloors },
 
   { id: 10, name: "בית אמצור", nameEn: "Amtzur House",
     owner: "—", address: "הסדנאות 8, הרצליה", area: "south",
@@ -326,7 +326,7 @@ export const buildings: Building[] = [
     askingPrice: 80, allowance: "1,000 ₪", finish: "As-Is",
     parkingPrice: "—", managementFee: 0,
     contact: "—", phone: "—", notes: "קומות 3-4 פנויות חלקית",
-    occupancy: 0.923, floors: amtzurFloors },
+    occupancy: 0.923, latitude: 32.1615, longitude: 34.8059, floors: amtzurFloors },
 
   { id: 11, name: "מגדלי אקרשטיין C", nameEn: "Akerstein Towers C",
     owner: "—", address: "אבא אבן 10, הרצליה", area: "south",
@@ -335,7 +335,7 @@ export const buildings: Building[] = [
     parkingPrice: "850 ₪ צפה / 1,000 ₪ קבועה", managementFee: 25.5,
     contact: "—", phone: "—",
     notes: "קורל מפנה במרץ 700 מ\"ר",
-    occupancy: 0.590, floors: akersteinCFloors },
+    occupancy: 0.590, latitude: 32.1614, longitude: 34.8086, floors: akersteinCFloors },
 
   { id: 12, name: "מגדלי אקרשטיין A", nameEn: "Akerstein Towers A",
     owner: "—", address: "המנופים 9-11, הרצליה", area: "south",
@@ -344,7 +344,7 @@ export const buildings: Building[] = [
     parkingPrice: "750 ₪ צפה / 1,200 ₪ שמורה", managementFee: 25.5,
     contact: "יואב מנהל שיווק", phone: "054-7826236",
     notes: "Uniphore + Regus מתפנים פברואר · DG Safe מתפנה ביוני",
-    occupancy: 0.702, floors: akersteinAFloors },
+    occupancy: 0.702, latitude: 32.1608, longitude: 34.8080, floors: akersteinAFloors },
 
   { id: 13, name: "בית גראפ", nameEn: "Graf House",
     owner: "—", address: "שנקר 4, הרצליה", area: "south",
@@ -352,7 +352,7 @@ export const buildings: Building[] = [
     askingPrice: 100, allowance: "ללא", finish: "As-Is New",
     parkingPrice: "750 ₪", managementFee: 22.5,
     contact: "—", phone: "—", notes: "",
-    occupancy: 0.893, floors: grafFloors },
+    occupancy: 0.893, latitude: 32.1606, longitude: 34.8093, floors: grafFloors },
 
   { id: 14, name: "רוגובין ריט 1", nameEn: "Rogovin REIT 1",
     owner: "—", address: "המנופים 10, הרצליה", area: "south",
@@ -360,7 +360,7 @@ export const buildings: Building[] = [
     askingPrice: 100, allowance: "ללא", finish: "As-Is",
     parkingPrice: "800 ₪", managementFee: 18,
     contact: "בר", phone: "054-4237866", notes: "",
-    occupancy: 0.956, floors: rogovingFloors },
+    occupancy: 0.956, latitude: 32.1598, longitude: 34.8080, floors: rogovingFloors },
 
   { id: 15, name: "בית תאטראות", nameEn: "Theaters House",
     owner: "—", address: "משכית / מדינת היהודים, הרצליה", area: "north",
@@ -369,7 +369,7 @@ export const buildings: Building[] = [
     parkingPrice: "750 ₪", managementFee: 21,
     contact: "יוסי מנהל בניין", phone: "054-4462533",
     notes: "בגמר — צריך שיפוץ רציני",
-    occupancy: 0.833, floors: theatersFloors },
+    occupancy: 0.833, latitude: 32.1659, longitude: 34.8112, floors: theatersFloors },
 
   { id: 16, name: "בית שער העיר", nameEn: "Shaar HaIr House",
     owner: "—", address: "אבא אבן / שנקר 1, הרצליה", area: "south",
@@ -377,7 +377,7 @@ export const buildings: Building[] = [
     askingPrice: 0, allowance: "—", finish: "—",
     parkingPrice: "—", managementFee: 0,
     contact: "—", phone: "—", notes: "",
-    occupancy: 0.9555, floors: shaarHairFloors },
+    occupancy: 0.9555, latitude: 32.1604, longitude: 34.8100, floors: shaarHairFloors },
 
   { id: 17, name: "HQ", nameEn: "HQ Building",
     owner: "—", address: "הרצליה", area: "",
@@ -386,5 +386,5 @@ export const buildings: Building[] = [
     parkingPrice: "—", managementFee: 0,
     contact: "—", phone: "—",
     notes: "שטחים פנויים לחלוטין — בנייה חדשה",
-    occupancy: 0.125, floors: hqFloors },
+    occupancy: 0.125, latitude: 32.1625, longitude: 34.8095, floors: hqFloors },
 ]
