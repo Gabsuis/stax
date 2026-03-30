@@ -7,9 +7,10 @@ import { useBuildings } from "@/lib/hooks/useBuildings"
 import LanguageSwitcher from "@/components/LanguageSwitcher"
 import ThemeToggle from "@/components/ThemeToggle"
 import StackingPlanEditor, { createBlankBuilding, type EditorBuilding } from "@/components/StackingPlanEditor"
-import { FolderOpen, FilePlus, AlertCircle } from "lucide-react"
+import { FolderOpen, FilePlus, AlertCircle, Save, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { supabaseBrowser } from "@/lib/supabase-client"
+import { saveEditorBuildings } from "@/lib/save-editor"
 
 export default function EditorPage() {
   const t = useTranslations("editor")
@@ -17,6 +18,8 @@ export default function EditorPage() {
   const { buildings: dbBuildings } = useBuildings()
   const [editorBuildings, setEditorBuildings] = useState<EditorBuilding[]>([createBlankBuilding(5)])
   const [saved, setSaved] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
   const [loadMenuOpen, setLoadMenuOpen] = useState(false)
 
   // Load existing building into editor
@@ -31,21 +34,32 @@ export default function EditorPage() {
 
     const { data: floors } = await supabaseBrowser
       .from('floors')
-      .select('*, tenant_blocks(*)')
+      .select('*, tenant_blocks(*, tenant:tenants(name))')
       .eq('building_id', buildingId)
       .order('floor_number', { ascending: false })
 
     if (!floors) return
 
-    const editorFloors = floors.map((f) => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const editorFloors = floors.map((f: any) => ({
       id: f.id,
       floorNumber: f.floor_number,
       hasVacancy: f.tenant_blocks?.some((b: { status: string }) => b.status === 'vacant') ?? false,
       tenants: f.tenant_blocks?.length
-        ? f.tenant_blocks.map((b: { id: string; tenant_name: string | null; status: string }) => ({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ? f.tenant_blocks.map((b: any) => ({
             id: b.id,
-            name: b.tenant_name || '',
-            isVacant: b.status === 'vacant' || !b.tenant_name,
+            name: b.tenant?.name || '',
+            isVacant: b.status === 'vacant' || !b.tenant?.name,
+            sqm: b.sqm || undefined,
+            leaseStart: b.lease_start ? b.lease_start.slice(0, 7) : undefined,
+            leaseEnd: b.lease_end ? b.lease_end.slice(0, 7) : undefined,
+            rentPerSqm: b.rent_per_sqm || undefined,
+            managementFeeSqm: b.management_fee_sqm || undefined,
+            deliveryCondition: b.delivery_condition || undefined,
+            isSublease: b.is_sublease || false,
+            subleaseTenant: b.sublease_tenant || undefined,
+            notes: b.notes || undefined,
           }))
         : [{ id: Math.random().toString(36).slice(2, 9), name: '', isVacant: true }],
     }))
@@ -64,6 +78,28 @@ export default function EditorPage() {
 
     setLoadMenuOpen(false)
     setSaved(false)
+    setSaveError(null)
+  }
+
+  // Save buildings to database
+  const handleSave = async () => {
+    const invalid = editorBuildings.some(b => !b.name.trim() || (!b.city.trim() && !b.cityEn.trim()))
+    if (invalid) return
+
+    setSaving(true)
+    setSaveError(null)
+    try {
+      const savedIds = await saveEditorBuildings(editorBuildings)
+      // Update editor building IDs to the real UUIDs so subsequent saves update rather than insert
+      setEditorBuildings(prev =>
+        prev.map((b, i) => ({ ...b, id: savedIds[i] ?? b.id }))
+      )
+      setSaved(true)
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Save failed')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -127,6 +163,19 @@ export default function EditorPage() {
                 )}
               </div>
 
+              {/* Save */}
+              <Button
+                size="sm"
+                onClick={handleSave}
+                disabled={saving || editorBuildings.some(b => !b.name.trim() || (!b.city.trim() && !b.cityEn.trim()))}
+              >
+                {saving
+                  ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  : <Save className="w-3.5 h-3.5" />
+                }
+                {locale === "he" ? "שמור לטבלה" : "Save to Buildings"}
+              </Button>
+
               <ThemeToggle />
               <LanguageSwitcher />
             </div>
@@ -142,7 +191,7 @@ export default function EditorPage() {
             locale={locale}
           />
 
-          {/* Save area */}
+          {/* Save feedback */}
           <div className="mt-6 flex flex-col items-center gap-3">
             {editorBuildings.some(b => !b.name.trim() || (!b.city.trim() && !b.cityEn.trim())) && (
               <p className="text-xs text-lease-red flex items-center gap-1.5">
@@ -152,9 +201,15 @@ export default function EditorPage() {
                   : "Every building must have a name and city before saving."}
               </p>
             )}
+            {saveError && (
+              <p className="text-xs text-lease-red flex items-center gap-1.5">
+                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                {saveError}
+              </p>
+            )}
             {saved && (
               <div className="text-sm text-lease-green">
-                {locale === "he" ? "נשמר בהצלחה" : "Saved successfully"}
+                {locale === "he" ? "נשמר בהצלחה — הבניין נוסף לטבלה" : "Saved successfully — building added to table"}
               </div>
             )}
           </div>
